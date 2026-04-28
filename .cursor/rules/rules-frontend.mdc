@@ -1,0 +1,104 @@
+---
+description: Reglas de código Frontend — React + TypeScript + ESLint + Prettier
+globs: ["frontend/**/*.tsx", "frontend/**/*.ts"]
+alwaysApply: false
+---
+
+# 📐 Rules Frontend — Gestión de Inventario
+
+## R1 — Tipado estricto, prohibido `any`
+Todos los componentes y funciones deben tener tipos TypeScript explícitos. Usar `unknown` si el tipo no es determinable. Definir interfaces para todos los objetos que vienen de la API.
+
+```typescript
+// ✅ Correcto
+interface Product {
+  id: number;
+  nombre: string;
+  categoria: string;
+  unidadMedida: 'unidades' | 'kg' | 'litros';
+  stockMinimo: number;
+  stockActual: number;
+  activo: boolean;
+}
+
+// ❌ Incorrecto
+const product: any = await api.get('/inventory');
+```
+
+## R2 — Tres estados obligatorios en cada fetch
+Todo fetch debe manejar `loading`, `error` y `data`. Nunca renderizar datos sin verificar que no sean `null` o `undefined`. Los mensajes de error deben ser legibles para el usuario, no mensajes técnicos.
+
+```typescript
+// ✅ Patrón obligatorio
+const [data, setData] = useState<Product[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+
+// ✅ Renderizado condicional
+if (loading) return <p>Cargando productos...</p>;
+if (error) return <p>Error: {error}</p>;
+if (data.length === 0) return <p>No hay productos registrados.</p>;
+```
+
+## R3 — Separación estricta de responsabilidades
+- Lógica HTTP exclusivamente en `services/api.ts`. Los componentes no llaman a Axios directamente.
+- Un componente tiene una sola responsabilidad visual.
+- La lógica de validación de formularios vive en el componente del formulario, no en el servicio.
+
+```typescript
+// ✅ Correcto — componente consume el servicio
+import { getInventory } from '../services/api';
+const products = await getInventory();
+
+// ❌ Incorrecto — componente llama a Axios directamente
+import axios from 'axios';
+const { data } = await axios.get('http://localhost:3000/inventory');
+```
+
+## R4 — Validaciones en tiempo real, no solo en submit
+Las validaciones del formulario se ejecutan en el `onChange`. La cantidad debe ser un entero positivo (>= 1). En tipo 'salida', la cantidad no puede superar el `stockActual` del producto seleccionado. El botón submit se deshabilita mientras hay errores de validación o una petición en curso.
+
+```typescript
+// ✅ Validación en onChange
+const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valor = parseInt(e.target.value, 10);
+  if (!Number.isInteger(valor) || valor < 1) {
+    setErrorCantidad('La cantidad debe ser un entero positivo.');
+  } else if (tipo === 'salida' && valor > stockDisponible) {
+    setErrorCantidad(`No puede superar el stock disponible (${stockDisponible}).`);
+  } else {
+    setErrorCantidad(null);
+  }
+  setCantidad(valor);
+};
+```
+
+## R5 — Nomenclatura consistente
+| Elemento | Convención | Ejemplo |
+|---|---|---|
+| Componentes | PascalCase | `ProductCard`, `StockBadge` |
+| Funciones y variables | camelCase | `handleSubmit`, `stockActual` |
+| Archivos de componentes | PascalCase.tsx | `ProductCard.tsx` |
+| Archivos de servicios | camelCase.ts | `api.ts` |
+| Interfaces de props | `NombreProps` | `StockBadgeProps` |
+| Enums y constantes | UPPER_SNAKE_CASE | `MOVEMENT_TYPES` |
+
+## R6 — Feedback al usuario en todas las acciones
+- Mensaje de éxito o error visible tras enviar el formulario.
+- Errores de validación junto al campo correspondiente, nunca con `alert()`.
+- Botón de submit deshabilitado durante petición en curso.
+- Estado vacío siempre manejado con mensaje descriptivo.
+
+```tsx
+// ✅ Feedback correcto
+{errorCantidad && <span className="error-msg">{errorCantidad}</span>}
+{success && <div className="success-banner">Movimiento registrado correctamente.</div>}
+{apiError && <div className="error-banner">{apiError}</div>}
+```
+
+## R7 — Formateo con ESLint + Prettier
+- Comillas simples en TypeScript/TSX.
+- Máximo 100 caracteres por línea.
+- Siempre punto y coma al final.
+- Trailing comma en objetos y arrays multilínea.
+- Correr `npm run lint:fix` antes de cada commit.

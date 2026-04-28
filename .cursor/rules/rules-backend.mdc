@@ -1,0 +1,141 @@
+---
+description: Reglas de código Backend — NestJS + TypeORM + PostgreSQL + ESLint + Prettier
+globs: ["backend/**/*.ts"]
+alwaysApply: false
+---
+
+# 📐 Rules Backend — Gestión de Inventario
+
+## R1 — Entidades TypeORM con decoradores completos
+Todas las entidades deben usar decoradores de TypeORM completos. Agregar `@Index` en columnas usadas en filtros frecuentes. Las entidades no contienen lógica de negocio.
+
+```typescript
+// ✅ Entidad Movement correcta
+@Entity('movements')
+export class Movement {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'enum', enum: ['entrada', 'salida'] })
+  tipo: 'entrada' | 'salida';
+
+  @Column({ type: 'int' })
+  cantidad: number;
+
+  @Column({ type: 'enum', enum: ['compra', 'venta', 'ajuste', 'merma', 'devolucion'] })
+  razon: string;
+
+  @CreateDateColumn({ name: 'fecha' })
+  fecha: Date;
+
+  @ManyToOne(() => Product, { nullable: false, eager: false })
+  @JoinColumn({ name: 'producto_id' })
+  @Index()
+  producto: Product;
+
+  @Column({ name: 'producto_id' })
+  productoId: number;
+}
+```
+
+## R2 — DTOs con class-validator, sin validación duplicada
+Todos los DTOs usan decoradores de `class-validator`. No validar en el servicio lo que ya valida el DTO. Usar `@ApiProperty` si Swagger está activo.
+
+```typescript
+// ✅ DTO correcto
+export class CreateMovementDto {
+  @IsEnum(['entrada', 'salida'])
+  tipo: 'entrada' | 'salida';
+
+  @IsInt()
+  @Min(1, { message: 'La cantidad debe ser al menos 1.' })
+  cantidad: number;
+
+  @IsInt()
+  @IsPositive()
+  productoId: number;
+
+  @IsEnum(['compra', 'venta', 'ajuste', 'merma', 'devolucion'])
+  razon: string;
+}
+```
+
+## R3 — Errores HTTP semánticos, nunca errores genéricos
+Usar excepciones de NestJS: `NotFoundException`, `BadRequestException`, `ConflictException`. El mensaje de error debe ser descriptivo para el cliente. Prohibido `throw new Error(...)`.
+
+```typescript
+// ✅ Correcto
+throw new BadRequestException('La cantidad de salida supera el stock disponible.');
+throw new NotFoundException(`Producto con id ${id} no encontrado.`);
+throw new ConflictException('No se puede eliminar un producto con movimientos asociados.');
+
+// ❌ Incorrecto
+throw new Error('Error');
+throw new Error('Stock insuficiente');
+```
+
+## R4 — Transacciones obligatorias en operaciones de escritura críticas
+Los movimientos de stock se registran dentro de una transacción TypeORM con `queryRunner`. Rollback explícito en caso de error. Release en el bloque `finally`.
+
+```typescript
+// ✅ Patrón de transacción obligatorio
+const queryRunner = this.dataSource.createQueryRunner();
+await queryRunner.connect();
+await queryRunner.startTransaction();
+try {
+  // 1. Calcular stock actual
+  // 2. Validar disponibilidad
+  // 3. Guardar movimiento
+  await queryRunner.commitTransaction();
+} catch (err) {
+  await queryRunner.rollbackTransaction();
+  throw err;
+} finally {
+  await queryRunner.release();
+}
+```
+
+## R5 — Nomenclatura consistente
+| Elemento | Convención | Ejemplo |
+|---|---|---|
+| Servicios | `NombreService` | `ProductsService` |
+| Controladores | `NombreController` | `MovementsController` |
+| Módulos | `NombreModule` | `InventoryModule` |
+| Entidades | Singular PascalCase | `Product`, `Movement` |
+| DTOs | `VerbNombreDto` | `CreateProductDto`, `UpdateProductDto` |
+| Variables y params | camelCase | `productoId`, `stockActual` |
+| Columnas DB | snake_case en `@Column({ name })` | `producto_id`, `stock_minimo` |
+
+## R6 — Inyección de dependencias, nunca instanciación manual
+Toda dependencia se inyecta por constructor. Repositorios con `@InjectRepository`. Nunca `new ProductsService()`.
+
+```typescript
+// ✅ Correcto
+constructor(
+  @InjectRepository(Product)
+  private readonly productRepository: Repository<Product>,
+  private readonly dataSource: DataSource,
+) {}
+
+// ❌ Incorrecto
+const service = new ProductsService();
+```
+
+## R7 — Lógica de negocio en servicios, no en controladores
+Los controladores solo reciben la petición, delegan al servicio y retornan la respuesta. Las validaciones de negocio (stock, desactivación, fechas) viven en el servicio correspondiente.
+
+```typescript
+// ✅ Controlador correcto — delega todo
+@Post()
+create(@Body() dto: CreateMovementDto) {
+  return this.movementsService.create(dto);
+}
+
+// ❌ Incorrecto — lógica de negocio en el controlador
+@Post()
+async create(@Body() dto: CreateMovementDto) {
+  const stock = await this.inventoryService.getStock(dto.productoId);
+  if (dto.cantidad > stock) throw new BadRequestException('...');
+  return this.movementsService.create(dto);
+}
+```

@@ -1,0 +1,89 @@
+---
+description: Reglas de Documentación — PRD, Gherkin, Tickets y revisiones técnicas
+globs: ["docs/**/*", "**/*.md"]
+alwaysApply: false
+---
+
+# 📐 Rules Documentación — Gestión de Inventario
+
+## R1 — Estructura obligatoria del PRD
+Todo PRD generado debe contener exactamente estas secciones en este orden:
+
+1. **Objetivo del sistema** — qué problema resuelve y para quién.
+2. **Alcance** — qué incluye y qué está explícitamente fuera de scope.
+3. **Funcionalidades principales** — nombre, descripción y reglas de negocio por cada una.
+4. **Restricciones técnicas** — stack, versiones, limitaciones conocidas.
+5. **Criterios de aceptación por funcionalidad** — condiciones verificables de éxito.
+6. **Pantallas del frontend** — descripción de cada pantalla y su comportamiento esperado.
+
+El PRD debe iterarse al menos 2 veces: borrador inicial → versión refinada con casos borde.
+
+## R2 — Formato Gherkin estricto para User Stories
+```gherkin
+Feature: [nombre de la funcionalidad en lenguaje de dominio]
+
+  Scenario: [descripción del escenario — caso feliz]
+    Given [contexto inicial]
+    When [acción del usuario o sistema]
+    Then [resultado esperado]
+    And [resultado adicional si aplica]
+
+  Scenario: [descripción del escenario — caso de error]
+    Given [contexto inicial con condición de error]
+    When [misma acción]
+    Then [resultado de error esperado]
+```
+
+- Cada user story tiene **mínimo 2 escenarios**: caso feliz + caso de error.
+- Lenguaje de dominio, no técnico. Prohibido mencionar clases, métodos o endpoints.
+- Actor explícito: `Como admin`, `Como usuario`, `Como sistema`.
+
+## R3 — Estructura obligatoria de tickets
+```markdown
+## [ID] — [Título en imperativo]
+
+**User Story:** [US-XX]
+**Estimación:** S | M | L | XL
+
+### Descripción
+[Contexto y comportamiento esperado en 2-4 oraciones.]
+
+### Criterios de aceptación
+- [ ] [Condición verificable y binaria]
+- [ ] [Condición verificable y binaria]
+- [ ] [Caso borde crítico si aplica]
+
+### Notas técnicas
+- [Endpoint, entidad, o regla de negocio relevante]
+- [Consideración de implementación si aplica]
+```
+
+- ID: `BE-###` para backend, `FE-###` para frontend.
+- Título en imperativo: "Implementar...", "Validar...", "Mostrar...".
+- Criterios de aceptación: **binarios** — se cumple o no se cumple.
+
+## R4 — Precisión y verificabilidad en criterios de aceptación
+Prohibido usar lenguaje vago. Cada criterio debe ser comprobable por cualquier persona sin ambigüedad.
+
+| ❌ Vago | ✅ Preciso |
+|---|---|
+| "Debe funcionar correctamente" | "Debe retornar HTTP 200 con la lista de productos" |
+| "El formulario debe validar bien" | "El botón submit permanece deshabilitado si cantidad <= 0" |
+| "Debe ser rápido" | "Debe retornar respuesta en menos de 500ms" |
+| "Mostrar error si algo falla" | "Mostrar mensaje: 'La cantidad supera el stock disponible.'" |
+
+## R5 — Trazabilidad entre documentos
+- Cada ticket referencia su user story (`**User Story:** US-04`).
+- Cada user story referencia su funcionalidad del PRD.
+- Si se modifica una funcionalidad en el PRD, actualizar las user stories y tickets en cascada.
+- El `revision-log.md` registra cada cambio con fecha y justificación.
+
+## R6 — Revisión técnica estructurada en 3 categorías
+Cada revisión de código debe analizar exactamente estas categorías:
+
+1. **Mantenibilidad:** estructura, nomenclatura, responsabilidades, duplicación.
+2. **Correctitud:** lógica incorrecta, casos borde no manejados, errores silenciosos.
+3. **Rendimiento:** queries ineficientes, renders innecesarios, llamadas redundantes.
+
+Para cada hallazgo: descripción del problema → impacto → código corregido.
+Registrar en `docs/revision-log.md` con fecha, área revisada y cambios aplicados.

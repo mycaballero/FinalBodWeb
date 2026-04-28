@@ -1,0 +1,128 @@
+---
+description: Reglas de Testing — Jest + fast-check + Stryker + Playwright
+globs: ["backend/**/*.spec.ts", "frontend/src/e2e/**/*.spec.ts", "stryker.config.*"]
+alwaysApply: false
+---
+
+# 📐 Rules Testing & QA — Gestión de Inventario
+
+## R1 — Estructura de archivos de prueba
+Un archivo `.spec.ts` por cada servicio. Cada `describe` agrupa pruebas de un método. Cada `it` verifica un único comportamiento. Nunca conectar a base de datos real en pruebas unitarias.
+
+```
+backend/src/
+├── products/products.service.spec.ts
+├── movements/movements.service.spec.ts
+└── inventory/inventory.service.spec.ts
+```
+
+```typescript
+// ✅ Estructura obligatoria
+describe('MovementsService', () => {
+  describe('create()', () => {
+    it('debe rechazar una salida que supera el stock disponible', async () => { /* ... */ });
+    it('debe aceptar una salida con cantidad exactamente igual al stock', async () => { /* ... */ });
+    it('debe registrar una entrada correctamente', async () => { /* ... */ });
+  });
+});
+```
+
+## R2 — Mocks de repositorios TypeORM, nunca BD real
+```typescript
+// ✅ Patrón estándar de mock
+const mockProductRepo = {
+  findOne: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
+  find: jest.fn(),
+};
+
+const mockQueryRunner = {
+  connect: jest.fn(),
+  startTransaction: jest.fn(),
+  commitTransaction: jest.fn(),
+  rollbackTransaction: jest.fn(),
+  release: jest.fn(),
+  manager: { save: jest.fn() },
+};
+
+const mockDataSource = {
+  createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
+};
+```
+
+## R3 — Nomenclatura de pruebas en lenguaje de dominio
+Formato: `debe [comportamiento esperado] cuando [condición]`. Prohibido usar nombres técnicos de clases o métodos en el texto del `it`.
+
+```typescript
+// ✅ Correcto
+it('debe rechazar una salida cuando la cantidad supera el stock disponible')
+it('debe retornar solo productos con stock por debajo del mínimo configurado')
+it('debe calcular el stock como la suma de entradas menos la suma de salidas')
+
+// ❌ Incorrecto
+it('test 1')
+it('should work')
+it('MovementsService.create() error case')
+```
+
+## R4 — PBT: enunciar la propiedad antes de implementarla
+Antes de escribir la prueba PBT, escribir un comentario con la propiedad en lenguaje natural. Usar `fc.assert(fc.property(...))` con mínimo 100 runs (default de fast-check). Los generadores deben reflejar el dominio real.
+
+```typescript
+// ✅ Propiedad enunciada antes del código
+// PROPIEDAD: Sin importar cuántas salidas válidas se registren,
+// el stock resultante nunca puede ser negativo.
+it('P1: stock nunca negativo', () => {
+  fc.assert(fc.property(
+    fc.integer({ min: 1, max: 1000 }),
+    fc.integer({ min: 1, max: 1000 }),
+    (stockInicial, cantidadSalida) => {
+      if (cantidadSalida > stockInicial) {
+        expect(() => validarSalida(stockInicial, cantidadSalida)).toThrow();
+      } else {
+        expect(stockInicial - cantidadSalida).toBeGreaterThanOrEqual(0);
+      }
+    }
+  ));
+});
+```
+
+## R5 — Stryker: verificar valores exactos, no solo ausencia de error
+Las pruebas deben verificar el **valor exacto** del resultado, no solo que no se lanzó un error. Los mutantes M4, M5 y M6 son los más peligrosos porque corrompen datos sin lanzar error.
+
+```typescript
+// ✅ Verifica el valor exacto — mata M5 (suma vs resta)
+it('debe sumar la cantidad al stock en una entrada', async () => {
+  const resultado = await service.calcularStock(productoId);
+  expect(resultado).toBe(50); // no solo expect(resultado).toBeDefined()
+});
+
+// ❌ Solo verifica que no hay error — no mata mutantes de operación
+it('debe procesar la entrada', async () => {
+  const resultado = await service.calcularStock(productoId);
+  expect(resultado).toBeDefined();
+});
+```
+
+## R6 — E2E Playwright: selectores semánticos e independencia entre pruebas
+Usar `getByRole`, `getByLabel`, `getByText`. Evitar selectores CSS frágiles como `.product-list > div:nth-child(2)`. Cada prueba E2E debe poder ejecutarse de forma independiente.
+
+```typescript
+// ✅ Selectores semánticos
+await page.getByLabel('Producto').selectOption({ index: 0 });
+await page.getByRole('button', { name: 'Registrar' }).click();
+await expect(page.getByText('Movimiento registrado correctamente')).toBeVisible();
+
+// ❌ Selectores frágiles
+await page.click('.form-container > form > div:nth-child(3) > button');
+```
+
+## R7 — Reportar contraejemplos y ajustar lógica
+Cuando fast-check encuentre un contraejemplo, registrarlo en el código con un comentario. Si el contraejemplo revela un bug en la lógica de negocio, corregir la lógica antes de ajustar la prueba.
+
+```typescript
+// ✅ Contraejemplo documentado
+// Contraejemplo encontrado por fast-check: cantidad=0 no era rechazado.
+// Corrección aplicada: agregar validación @Min(1) en el DTO.
+```

@@ -1,0 +1,94 @@
+---
+description: Reglas globales del proyecto FinalBodWeb — Módulo Gestión de Inventario
+globs: ["**/*.ts", "**/*.tsx", "**/*.spec.ts", "**/*.e2e.ts"]
+alwaysApply: true
+---
+
+# FinalBodWeb — Reglas Globales del Proyecto
+
+## Stack Oficial
+- Backend: NestJS + TypeORM + PostgreSQL + Jest + fast-check + Stryker
+- Frontend: React + Axios + Playwright
+- Lenguaje: TypeScript estricto en todo el proyecto
+
+## Estructura de Carpetas — NO modificar sin consenso
+```
+FinalBodWeb/
+├── backend/src/
+│   ├── products/  (dto, entities, controller, service)
+│   ├── movements/ (dto, entities, controller, service)
+│   ├── inventory/ (controller, service)
+│   └── common/   (pipes, guards)
+├── frontend/src/
+│    ├── pages/     (ProductList.tsx, MovementForm.tsx)
+│   ├── components/(ProductCard, StockBadge, MovementForm)
+│   ├── services/  (api.ts)
+│   └── e2e/       (Playwright specs)
+├── docs/
+│   ├── PRD.md
+│   ├── user-stories.md
+│   └── tickets.md
+```
+
+## Convenciones de Código
+
+### Backend (NestJS)
+- Decoradores siempre sobre la firma del método
+- DTOs con class-validator en toda entrada de datos
+- Services sin lógica HTTP (solo lógica de negocio)
+- Controllers sin lógica de negocio (solo orquestar)
+- Nunca eliminar productos con movimientos: solo PATCH estado → inactivo
+- Una salida NUNCA puede superar el stock disponible del producto
+
+### Frontend (React)
+- Componentes funcionales + hooks únicamente
+- Axios centralizado en services/api.ts
+- Validación en tiempo real en formularios
+- StockBadge indica visualmente si producto está bajo stock mínimo
+
+## Reglas de Negocio — CRÍTICAS
+```gherkin
+Rule: Stock mínimo
+  - Si stock_actual <= stock_minimo → producto aparece en /inventory/alerts/low-stock
+  - El badge visual en frontend DEBE reflejar esta condición
+
+Rule: Movimientos
+  - Tipos válidos: entrada | salida
+  - Razones válidas: compra | venta | ajuste | merma | devolución
+  - salida.cantidad NUNCA > stock_disponible
+
+Rule: Productos
+  - Unidades de medida: unidades | kg | litros
+  - Estado: activo | inactivo
+  - DELETE físico bloqueado si tiene movimientos asociados
+```
+
+## Testing — Obligatorio
+- Jest para unit tests en backend (services)
+- fast-check para Property-Based Testing
+- Stryker para mutation testing
+- Playwright para E2E en frontend
+
+## Endpoints Canónicos
+```
+POST   /products
+GET    /products
+GET    /products/:id
+PATCH  /products/:id
+DELETE /products/:id          → solo desactiva
+
+POST   /movements
+GET    /movements             → filtros: producto, tipo, fecha
+GET    /movements/:id
+
+GET    /inventory
+GET    /inventory/:productId
+GET    /inventory/alerts/low-stock
+```
+
+## Prohibiciones
+- NO usar any en TypeScript
+- NO lógica de negocio en controllers
+- NO eliminar físicamente productos con movimientos
+- NO salidas que superen stock disponible
+- NO componentes de clase en React
