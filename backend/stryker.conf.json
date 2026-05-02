@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
+  "testRunner": "jest",
+  "reporters": ["clear-text", "progress"],
+  "coverageAnalysis": "off",
+  "mutate": ["src/**/*.ts", "!src/**/*.spec.ts", "!src/**/*.pbt.spec.ts"],
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": 50
+  }
+}

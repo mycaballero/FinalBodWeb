@@ -32,7 +32,7 @@ QUALITY CRITERIA:
 
 ´´
 
-Con este prompt establecí una ayuda para lo que serían las tools de IA que estaría usando durante el desarollo y que los agentes puedan utilizarlas y reutilizarlos.
+Con este prompt establecí una ayuda para lo que serían las tools de IA que estaría usando durante el desarollo y que los agentes puedan utilizarlas y reutilizarlos. (Tuve que iterar varias dos o tres veces más para que generara todo lo que necesitaba).
 
 - Curosr Agente Auto (Ejecución del agente creado).
 ´´
@@ -62,3 +62,284 @@ Tambien historias de usuario para la creación de la base de datos y Aqrquitectu
 ´´
 
 Con este prompt se generaron las historias de usuario, tickets.
+
+
+- Cursor Agente Auto (Ejecución del agente implementador).
+
+´´
+
+@.cursor/agents/agent-implementador.md Vamos a implementar las primeras historias del proyecto enfocándos en backend y database.
+1. plantea cuales son los pasos a seguir para que yo los valide.
+2. Siempre que se vaya a implementar una historia de usuario hazme las preguntas necesarias para garantizar el entendimiento máximos de dicha historia.
+3. Has un análisis del código. y Crea la documentación en el README.md 
+
+´´
+
+- Cursor Agente Auto (PRD del frontend).
+
+´´ 
+
+/prd-gherkin-architect 
+## 🎯 Objetivo
+Definir las **User Stories y comportamiento frontend** para:
+
+1. Pantalla: **Lista de productos**
+2. Pantalla: **Registro de movimiento**
+
+El objetivo es construir un frontend robusto, con validaciones, manejo de estados y correcta integración con backend para eso deben crearse las historias de usuario y tickets necesrios para que se pueda implementar correctamente.
+
+---
+
+## ⚠️ Reglas obligatorias
+
+- NO asumir comportamientos no definidos
+- Implementar validaciones completas en frontend
+- Manejar estados:
+  - loading
+  - success
+  - error
+- Mantener consistencia visual basada en:
+  https://getdesign.md/stripe/design-md
+- Código limpio, reutilizable y escalable
+
+---
+
+# 📦 Pantalla 1: Lista de Productos
+
+## 🎯 Objetivo funcional
+Mostrar todos los productos activos con información clave y permitir navegación al registro de movimientos.
+
+---
+
+## 🧾 Datos a mostrar por producto
+
+- name
+- category
+- unit
+- currentStock
+- indicador de stock mínimo
+
+---
+
+## 🎨 UI / Layout
+
+- Diseño tipo tabla o lista en card
+- Columnas:
+  - Nombre
+  - Categoría
+  - Unidad
+  - Stock
+- Indicador visual:
+  - Si `stock <= minStock`
+    - Mostrar badge o color de alerta
+
+---
+
+## ⚙️ Comportamiento
+
+### Carga de datos
+
+- Consumir endpoint:
+  GET `/products`
+
+---
+
+### Estados
+
+#### Loading
+- Mostrar skeleton list (NO spinner vacío)
+
+#### Error
+- Mostrar mensaje claro
+- Botón de retry
+
+#### Empty
+- Mostrar estado vacío:
+  - “No hay productos disponibles”
+
+---
+
+### Interacción
+
+- Cada producto debe ser clickeable
+- Acción:
+  - Navegar a pantalla de registro de movimiento
+  - Enviar `productId` como parámetro
+
+---
+
+# 🔄 Pantalla 2: Registro de Movimiento
+
+## 🎯 Objetivo funcional
+Permitir registrar entradas o salidas de inventario con validaciones en tiempo real.
+
+---
+
+## 🧾 Campos del formulario
+
+- productId (select)
+- type (IN | OUT)
+- quantity
+- reason
+
+---
+
+## ⚙️ Comportamiento
+
+### Inicialización
+
+- Si viene `productId`:
+  - Preseleccionar producto
+
+---
+
+## 🧪 Validaciones (TIEMPO REAL)
+
+### quantity
+
+- Requerido
+- Número entero
+- Mayor a 0
+
+---
+
+### type
+
+- Requerido
+
+---
+
+### product
+
+- Requerido
+
+---
+
+### reason
+
+- Requerido
+
+---
+
+## ⚠️ Validación especial (CRÍTICA)
+
+Si `type = OUT`:
+
+- Obtener stock actual
+- Mostrar:
+  - “Stock disponible: X”
+- Validar:
+  - quantity <= stock
+- Si no:
+  - Bloquear submit
+  - Mostrar error claro
+
+---
+
+## 🚀 Envío
+
+### Endpoint
+
+POST `/movements`
+
+---
+
+### Payload esperado
+
+```json
+{
+  "productId": "",
+  "type": "IN | OUT",
+  "quantity": number,
+  "reason": ""
+}
+```
+
+---
+
+## 🔄 Estados del submit
+
+### Loading
+
+- Deshabilitar botón
+- Mostrar indicador
+
+---
+
+### Success
+
+- Mostrar feedback (toast/snackbar)
+- Acción configurable:
+  - Reset form o redirección
+
+---
+
+### Error
+
+- Mostrar errores del backend
+- Mapear errores por campo si existen
+- Mantener datos ingresados
+
+---
+
+# ⚙️ Manejo de errores
+
+- Mostrar errores por campo
+- Mostrar error general si falla request
+- No perder estado del formulario
+
+---
+
+# 🎨 Lineamientos UI (Stripe-style)
+
+- Grid de 8px
+- Inputs:
+  - estados: default / focus / error
+- Tipografía clara y jerárquica
+- Uso de colores para feedback:
+  - error
+  - warning (low stock)
+- Componentes reutilizables
+
+---
+
+# 🧱 Requisitos técnicos
+
+- Separar:
+  - UI
+  - lógica
+  - servicios API
+- Manejo de estado:
+  - loading / error / data
+- Código escalable
+- Evitar hardcodeo
+
+---
+
+# 📦 Entregable esperado
+
+- Pantalla lista de productos funcional
+- Pantalla registro de movimiento funcional
+- Validaciones completas
+- Manejo de errores robusto
+- Integración backend correcta
+- UI consistente con design system
+
+´´ 
+
+El agente creo la historias correctamente aunque tuve que hacer un ajuste en el prompt.
+
+
+- Cursor Agente Auto (implementación del frontend).
+
+´´
+/agent-implementador Eres un Senior frontend developer.
+Vamos a implementar todo el frontend así que revisa @docs en busca de las historiar relacionadas con Frontend grantizando las mejores pácticas y correcta integración.
+
+1. plantea cuales son los pasos a seguir para que yo los valide.
+2. Siempre que se vaya a implementar una historia de usuario hazme las preguntas necesarias para garantizar el entendimiento máximos de dicha historia.
+3. Has un análisis del código. y Crea la documentación en el README.md 
+
+´´
+
+El agente implementador creó la estructura de backend correctamente.

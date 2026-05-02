@@ -1,0 +1,64 @@
+import { Link } from 'react-router-dom';
+import type { Product } from '../types/domain';
+import { StockBadge } from './StockBadge';
+import { StatusBadge } from './StatusBadge';
+
+interface ProductCardProps {
+  product: Product;
+  isDeactivating?: boolean;
+  onDeactivate?: (product: Product) => void;
+}
+
+export function ProductCard({ product, isDeactivating = false, onDeactivate }: ProductCardProps) {
+  const isLowStock = product.currentStock <= product.minimumStock;
+  const isInactive = product.status === 'inactivo';
+
+  return (
+    <article
+      className={`rounded-2xl border p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        isLowStock
+          ? 'border-rose-200 bg-gradient-to-br from-white via-rose-50/50 to-white'
+          : 'border-indigo-200 bg-gradient-to-br from-white via-indigo-50/50 to-white'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Unidad: {product.unitMeasure} · Minimo: {product.minimumStock}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <StatusBadge status={product.status} />
+          <StockBadge currentStock={product.currentStock} minimumStock={product.minimumStock} />
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-slate-200/80 bg-white/90 p-3">
+        <p className="text-xs uppercase tracking-wide text-slate-500">Stock actual</p>
+        <p className={`text-2xl font-semibold ${isLowStock ? 'text-rose-600' : 'text-indigo-700'}`}>
+          {product.currentStock}
+        </p>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Link
+          to={`/movements/new?productId=${product.id}`}
+          className={`inline-flex rounded-lg px-4 py-2 text-sm font-medium text-white ${
+            isInactive ? 'cursor-not-allowed bg-slate-400 pointer-events-none' : 'bg-indigo-600 hover:bg-indigo-500'
+          }`}
+        >
+          Registrar movimiento
+        </Link>
+        <button
+          type="button"
+          onClick={() => onDeactivate?.(product)}
+          disabled={isInactive || isDeactivating}
+          className="inline-flex rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isDeactivating ? 'Desactivando...' : 'Desactivar'}
+        </button>
+      </div>
+    </article>
+  );
+}

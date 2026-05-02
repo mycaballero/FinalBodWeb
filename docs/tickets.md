@@ -84,13 +84,44 @@
 - **Estimacion:** L
 - **Riesgos/Notas:** costo de Stryker; considerar corrida nocturna si el tiempo de CI crece.
 
+## FE-001 (INV-015) - Pantalla Lista de Productos
+- **Descripcion:** implementar `ProductList` con layout consistente (tabla/cards), render de `name`, `category`, `unit`, `currentStock` e indicador low-stock.
+- **Definition of Done:** consume `GET /products`; soporta estados `loading` con skeleton, `error` con retry y `empty` con mensaje "No hay productos disponibles"; cada item es clickeable y navega a registro con `productId`.
+- **Estimacion:** M
+- **Riesgos/Notas:** alinear nombres de campos (`currentStock`, `minStock`) segun contrato real para evitar transformaciones ad-hoc.
+
+## FE-002 (INV-015) - Componentes reutilizables de feedback visual
+- **Descripcion:** crear componentes reutilizables de UI para celda/lista de producto e indicador de stock minimo con estados visuales consistentes.
+- **Definition of Done:** componente de indicador aplica condicion `stock_actual <= stock_minimo`; estados visuales de input/feedback siguen guideline de 8px grid y jerarquia tipografica.
+- **Estimacion:** S
+- **Riesgos/Notas:** evitar duplicacion de estilos entre lista y formulario; centralizar tokens/base styles.
+
+## FE-003 (INV-016) - Formulario Registro de Movimiento
+- **Descripcion:** implementar `MovementForm` con campos `productId`, `type`, `quantity`, `reason`, inicializacion por `productId` de navegacion y validaciones en tiempo real.
+- **Definition of Done:** valida requeridos, `quantity` entera `> 0`, `type` en `entrada|salida`, `reason` en valores permitidos; para `salida` muestra "Stock disponible: X", bloquea submit si `quantity > stock`; en success muestra feedback y redirige a lista.
+- **Estimacion:** L
+- **Riesgos/Notas:** desacople entre validacion de frontend y backend puede generar falsos positivos/negativos si no se versiona el contrato.
+
+## FE-004 (INV-016) - Servicios API y manejo robusto de errores
+- **Descripcion:** implementar/ajustar `services/api.ts` para `GET /products` y `POST /movements`, con normalizacion de errores de red, validacion y negocio.
+- **Definition of Done:** errores de backend se mapean por campo cuando exista metadata; fallback a error general cuando no haya detalle; el formulario conserva estado tras error y permite reintento sin perder datos.
+- **Estimacion:** M
+- **Riesgos/Notas:** contratos de error inconsistentes entre endpoints pueden requerir adaptador comun.
+
+## FE-005 (INV-015, INV-016) - Pruebas E2E de pantallas frontend
+- **Descripcion:** crear escenarios Playwright para lista de productos y registro de movimientos cubriendo flujo feliz, errores y bordes criticos.
+- **Definition of Done:** se prueban estados `loading/error/empty` en lista, navegacion con `productId`, validacion de salida con stock insuficiente, submit exitoso con redireccion y manejo de error de red sin perdida de datos.
+- **Estimacion:** M
+- **Riesgos/Notas:** fixtures/mocks de red deben ser deterministas para evitar flakes en CI.
+
 ---
 
 ## Orden sugerido de ejecucion
 1. DB-001, DB-002, DB-003, BE-001  
 2. BE-002, BE-003, BE-005, BE-006  
 3. BE-004, BE-007, BE-008, BE-009  
-4. BE-010, QA-001
+4. BE-010, FE-001, FE-002, FE-003, FE-004  
+5. FE-005, QA-001
 
 ## Matriz de trazabilidad resumida
 - INV-005 -> `POST /products` -> `products` -> unit/integration + negativos 400/409
@@ -99,3 +130,5 @@
 - INV-010 -> `GET /inventory*` -> `movements`, `products` -> formula de stock
 - INV-011 -> `GET /inventory/alerts/low-stock` -> `products`, `movements` -> borde `<=`
 - INV-012 -> `GET /movements*` -> `movements` -> filtros + rango invalido
+- INV-015 -> `GET /products` -> `frontend/pages/ProductList`, `frontend/components/StockBadge` -> loading/error/empty + low-stock + navegacion con `productId`
+- INV-016 -> `POST /movements` -> `frontend/pages/MovementForm`, `frontend/services/api` -> validaciones realtime + bloqueo por stock + feedback y redireccion

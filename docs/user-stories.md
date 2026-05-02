@@ -228,3 +228,106 @@ Given configuracion Stryker activa
 When ejecuto mutation testing
 Then el mutation score cumple el umbral acordado por equipo
 ```
+
+## INV-015 - Lista de productos en frontend
+**Como** usuario de inventario  
+**Quiero** visualizar los productos activos con su stock y alertas  
+**Para** decidir rapidamente sobre reposicion y registrar movimientos
+
+### Criterios de aceptacion (Gherkin)
+```gherkin
+Given el backend retorna productos activos en GET /products
+When ingreso a la pantalla de lista de productos
+Then se renderiza una lista con nombre, categoria, unidad y stock por producto
+And cada producto muestra un indicador visual cuando stock_actual <= stock_minimo
+```
+```gherkin
+Given la pantalla de lista esta cargando datos
+When se inicia la consulta de productos
+Then se muestra un skeleton list
+And no se muestra spinner vacio como estado principal
+```
+```gherkin
+Given la consulta GET /products falla
+When la pantalla entra en estado de error
+Then se muestra un mensaje claro de error
+And se muestra un boton retry para reintentar la consulta
+```
+```gherkin
+Given GET /products responde una coleccion vacia
+When finaliza la carga sin errores
+Then se muestra el estado vacio con el mensaje "No hay productos disponibles"
+```
+```gherkin
+Given el usuario visualiza productos en la lista
+When hace clic en un producto
+Then el sistema navega a la pantalla de registro de movimiento
+And envia productId como parametro de navegacion
+```
+```gherkin
+Given existe un error de red temporal al consultar productos
+When el usuario presiona retry
+Then el sistema reintenta la consulta
+And si el backend responde correctamente se muestra la lista sin recargar la pagina completa
+```
+
+## INV-016 - Registro de movimiento en frontend
+**Como** usuario de inventario  
+**Quiero** registrar entradas y salidas con validaciones en tiempo real  
+**Para** mantener el inventario actualizado sin errores de captura
+
+### Criterios de aceptacion (Gherkin)
+```gherkin
+Given el usuario navega al formulario con un productId
+When se inicializa la pantalla de registro de movimiento
+Then el producto correspondiente queda preseleccionado en el campo productId
+```
+```gherkin
+Given el usuario edita los campos del formulario
+When ingresa valores invalidos en productId, type, quantity o reason
+Then el sistema muestra errores por campo en tiempo real
+And bloquea el submit hasta que los campos sean validos
+```
+```gherkin
+Given el usuario completa quantity
+When ingresa un valor no entero, vacio o menor o igual a cero
+Then se muestra un error claro indicando que quantity debe ser un entero mayor a cero
+And el formulario mantiene los datos ya ingresados
+```
+```gherkin
+Given el usuario selecciona type = salida
+When el formulario obtiene el stock actual del producto seleccionado
+Then muestra el texto "Stock disponible: X"
+And valida que quantity sea menor o igual al stock disponible
+```
+```gherkin
+Given type = salida y quantity supera el stock disponible
+When el usuario intenta enviar el formulario
+Then el submit queda bloqueado
+And se muestra un error claro de stock insuficiente
+```
+```gherkin
+Given los campos son validos para registrar un movimiento
+When el usuario envia el formulario
+Then el frontend ejecuta POST /movements con productId, type, quantity y reason
+And deshabilita el boton de envio mientras loading este activo
+```
+```gherkin
+Given el backend confirma el registro de movimiento
+When el submit finaliza en success
+Then el sistema muestra feedback de confirmacion
+And redirige a la lista de productos
+```
+```gherkin
+Given POST /movements responde errores de validacion o negocio
+When el submit finaliza en error
+Then el sistema mapea errores por campo cuando existan
+And muestra error general cuando no haya mapeo por campo
+And conserva los valores ingresados en el formulario
+```
+```gherkin
+Given el submit falla por timeout o error de red
+When el usuario permanece en la pantalla de registro
+Then el formulario mantiene su estado actual sin perder datos
+And permite corregir o reintentar el envio
+```
