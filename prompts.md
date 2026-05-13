@@ -2,7 +2,7 @@
 
 - Agente Claude
 
-´´
+```txt
 ROLE: Eres un experto en prompting especialista en cursor.
 CONTEXT:
 - Proyecto: FinalBodWeb
@@ -30,12 +30,13 @@ QUALITY CRITERIA:
 - Precisión técnica
 - Aplicabilidad real
 
-´´
+```
 
 Con este prompt establecí una ayuda para lo que serían las tools de IA que estaría usando durante el desarollo y que los agentes puedan utilizarlas y reutilizarlos. (Tuve que iterar varias dos o tres veces más para que generara todo lo que necesitaba).
 
 - Curosr Agente Auto (Ejecución del agente creado).
-´´
+
+```txt
 
 /prd-gherkin-architect Como un Product Manager Senior.
 ## Vamos a generar las userHisyorys y tickets necesarios para el deslgose de la creación de labkend con el objetivo de montar el sistema desde 0. Al final el sistema debe generar los endpoints para las siguientes categorías de funcionamiento que tendrá la app:
@@ -59,25 +60,24 @@ Se podrá consultar el historial completo de movimientos, filtrado por producto,
 
 Tambien historias de usuario para la creación de la base de datos y Aqrquitectura.
 
-´´
+```
 
 Con este prompt se generaron las historias de usuario, tickets.
 
-
 - Cursor Agente Auto (Ejecución del agente implementador).
 
-´´
+```txt
 
 @.cursor/agents/agent-implementador.md Vamos a implementar las primeras historias del proyecto enfocándos en backend y database.
 1. plantea cuales son los pasos a seguir para que yo los valide.
 2. Siempre que se vaya a implementar una historia de usuario hazme las preguntas necesarias para garantizar el entendimiento máximos de dicha historia.
 3. Has un análisis del código. y Crea la documentación en el README.md 
 
-´´
+```
 
 - Cursor Agente Auto (PRD del frontend).
 
-´´ 
+```txt
 
 /prd-gherkin-architect 
 ## 🎯 Objetivo
@@ -246,14 +246,14 @@ POST `/movements`
 
 ### Payload esperado
 
-```json
+``json
 {
   "productId": "",
   "type": "IN | OUT",
   "quantity": number,
   "reason": ""
 }
-```
+``
 
 ---
 
@@ -325,14 +325,13 @@ POST `/movements`
 - Integración backend correcta
 - UI consistente con design system
 
-´´ 
+```
 
 El agente creo la historias correctamente aunque tuve que hacer un ajuste en el prompt.
 
-
 - Cursor Agente Auto (implementación del frontend).
 
-´´
+```txt
 /agent-implementador Eres un Senior frontend developer.
 Vamos a implementar todo el frontend así que revisa @docs en busca de las historiar relacionadas con Frontend grantizando las mejores pácticas y correcta integración.
 
@@ -340,15 +339,307 @@ Vamos a implementar todo el frontend así que revisa @docs en busca de las histo
 2. Siempre que se vaya a implementar una historia de usuario hazme las preguntas necesarias para garantizar el entendimiento máximos de dicha historia.
 3. Has un análisis del código. y Crea la documentación en el README.md 
 
-´´
+```
 
 El agente implementador creó la estructura de backend correctamente.
 Posteriormente vimos que faltó la implementación de acutalización de un productio y utilizamos el siguiente prompt para dicha iteración:
 
-´´
+```txt
 No tenemos la implementación para actualizar el nombre descripción y unidad del producto. entonces vamos a implementarlo:
 - Valida el endpoint tipo patch de productos.
 - Añade un pequeño botón de engrae en la card.
 - al presionarlo entonces se precarga la información del producto en el formulario de creación y este por supuesto cambia los textos para que se entienda que está actualizando.
 
-´´
+```
+
+- Cursor Agent
+
+```txt
+
+@.cursor/agents/agent-frontend.md y @.cursor/agents/agent-backend.md
+
+## 🎯 Rol
+
+Actúa como un **Senior Software Engineer / Tech Lead** especializado en:
+
+- Clean Architecture
+- Clean Code
+- SOLID Principles
+- Escalabilidad
+- Performance
+- Manejo de errores
+- Frontend y Backend Architecture
+- Refactoring seguro
+- Developer Experience (DX)
+
+Tu objetivo es realizar una revisión técnica profunda del siguiente código:
+
+```
+
+[Aquí Se colocó cada uno de los módulos para la revisión. (Product, Inventory, stock, movements...)]
+
+```
+
+---
+
+# 🧩 Contexto
+
+El código pertenece a una aplicación en desarrollo y debe evaluarse con enfoque de:
+
+- mantenibilidad
+- escalabilidad
+- legibilidad
+- separación de responsabilidades
+- robustez
+- manejo de estados y errores
+- performance
+- buenas prácticas modernas
+
+La revisión debe ser crítica, técnica y específica.
+
+NO des respuestas genéricas.
+
+---
+
+# ⚠️ Reglas obligatorias
+
+- NO asumir contexto no presente en el código
+- Explicar claramente cada problema encontrado
+- Mostrar ejemplos concretos
+- Proponer soluciones reales y aplicables
+- Priorizar mantenibilidad y escalabilidad
+- Detectar riesgos técnicos ocultos
+- Evaluar impacto de cada problema
+- Indicar nivel de severidad:
+  - Low
+  - Medium
+  - High
+  - Critical
+
+---
+
+# 🔍 Áreas obligatorias de análisis
+
+## 1. Arquitectura y responsabilidades
+
+Analiza:
+
+- separación de responsabilidades
+- acoplamiento
+- cohesión
+- violaciones SOLID
+- responsabilidades mezcladas
+- dependencias innecesarias
+
+---
+
+## 2. Mantenibilidad
+
+Analiza:
+
+- legibilidad
+- duplicación
+- nombres ambiguos
+- complejidad innecesaria
+- funciones demasiado grandes
+- código difícil de testear
+
+---
+
+## 3. Manejo de errores
+
+Detecta:
+
+- ausencia de try/catch
+- errores silenciosos
+- manejo incorrecto de excepciones
+- mensajes poco claros
+- ausencia de fallback states
+- riesgos de crash
+
+---
+
+## 4. Lógica de negocio
+
+Analiza:
+
+- lógica incorrecta
+- edge cases no contemplados
+- validaciones faltantes
+- estados inconsistentes
+- race conditions
+- side effects peligrosos
+
+---
+
+## 5. Performance
+
+Detecta:
+
+- renders innecesarios
+- cálculos repetidos
+- loops ineficientes
+- memory leaks
+- llamadas redundantes
+- re-renders evitables
+- problemas async
+
+---
+
+## 6. Escalabilidad
+
+Analiza:
+
+- facilidad de crecimiento
+- reutilización
+- modularidad
+- dificultad de extensión futura
+- riesgos técnicos a largo plazo
+
+---
+
+## 7. Testing
+
+Evalúa:
+
+- facilidad para testing
+- dependencias difíciles de mockear
+- falta de separación lógica/UI
+- ausencia de patrones testeables
+
+---
+
+# 📋 Formato de respuesta obligatorio
+
+Para CADA problema encontrado usar esta estructura:
+
+---
+
+## 🚨 Problema #N — [Título corto]
+
+### 📍 Severidad
+
+High / Medium / Low / Critical
+
+### 🔎 Descripción
+
+Explica claramente:
+
+- qué está mal
+- por qué es un problema
+- impacto técnico
+- riesgos futuros
+
+---
+
+### ❌ Código problemático
+
+``language
+// fragmento problemático
+``
+
+---
+
+### ✅ Solución recomendada
+
+``language
+// código corregido o refactor
+``
+
+---
+
+### 🧠 Explicación técnica
+
+Explica:
+
+- por qué la solución es mejor
+- beneficios
+- impacto en mantenibilidad
+- impacto en performance
+- impacto en escalabilidad
+
+---
+
+# 🚀 Refactoring general
+
+Al finalizar:
+
+## Proponer:
+
+- mejoras arquitectónicas
+- separación por capas
+- custom hooks / services / repositories
+- patrones recomendados
+- optimizaciones generales
+- mejoras DX
+
+---
+
+# 🧱 Reglas de calidad
+
+La respuesta debe:
+
+- ser extremadamente específica
+- usar lenguaje técnico profesional
+- priorizar soluciones modernas
+- evitar opiniones vagas
+- enfocarse en código production-ready
+
+---
+
+# 📦 Resultado esperado
+
+Una auditoría técnica completa del código que permita:
+
+- mejorar calidad
+- reducir deuda técnica
+- aumentar escalabilidad
+- mejorar mantenibilidad
+- prevenir bugs futuros
+- facilitar testing y evolución del sistema
+
+```
+
+Por separado en cáda módulo identificó por lo menos 7 oportunidades de Mejora de diferentes niveles ejemplo: 
+
+```txt
+🚨 Problema #1 — Condición de carrera en salidas concurrentes (sin bloqueo ni serialización)
+📍 Severidad
+High (en escenarios de concurrencia real puede ser Critical para integridad de stock)
+
+🔎 Descripción
+create abre una transacción, lee el stock agregado con dos SUM y, si pasa la validación, inserta el movimiento. No hay SELECT … FOR UPDATE sobre el producto ni nivel de aislamiento elevado. Dos peticiones paralelas de salida pueden leer el mismo stock disponible, ambas pasar la comprobación dto.quantity > stock y persistir, dejando stock negativo a nivel de negocio (suma de movimientos). El try/catch con rollback solo protege fallos de excepción, no el solapamiento de lecturas.
+
+❌ Código problemático
+      const stock = await this.calculateStockByProductInTransaction(
+        dto.productId,
+        runner,
+      );
+      if (dto.type === MovementType.OUT && dto.quantity > stock) {
+        throw new UnprocessableEntityException(
+          'Stock insuficiente para registrar la salida',
+        );
+      }
+      const movement = runner.manager.create(MovementEntity, {
+        ...dto,
+        quantity: dto.quantity.toFixed(2),
+        date: new Date(dto.date),
+      });
+      const saved = await runner.manager.save(MovementEntity, movement);
+      await runner.commitTransaction();
+✅ Solución recomendada
+Bloqueo pesimista: SELECT id FROM products WHERE id = $1 FOR UPDATE dentro de la misma transacción antes de recalcular stock; o
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE y reintentar en conflicto; o
+restricción en BD + chequeo (más rígido de modelar).
+// Dentro del try, tras startTransaction:
+await runner.manager
+  .createQueryBuilder(ProductEntity, 'p')
+  .setLock('pessimistic_write')
+  .where('p.id = :id', { id: dto.productId })
+  .getOne();
+// luego calculateStockByProductInTransaction y save
+🧠 Explicación técnica
+La regla “salida nunca supera stock” debe ser atómica respecto a otras salidas del mismo producto. El bloqueo en fila de producto serializa conflictos con coste acotado. Mantenibilidad: la intención queda explícita. Performance: pequeño coste de lock en escrituras concurrentes del mismo producto. Escalabilidad: aceptable frente a integridad rota.
+
+```
+
