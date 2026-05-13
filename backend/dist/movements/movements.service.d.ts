@@ -12,6 +12,5 @@ export declare class MovementsService {
     findAll(query: GetMovementsQueryDto): Promise<MovementEntity[]>;
     findOne(id: string): Promise<MovementEntity>;
     calculateStockByProduct(productId: string): Promise<number>;
-    private calculateStockByProductInRepository;
-    private calculateStockByProductInTransaction;
+    private getStockBalance;
 }

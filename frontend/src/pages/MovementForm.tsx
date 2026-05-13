@@ -47,6 +47,11 @@ export function MovementForm() {
     queryFn: getProducts,
   });
 
+  const activeProducts = useMemo(
+    () => productsQuery.data?.filter((product) => product.status === 'activo') ?? [],
+    [productsQuery.data],
+  );
+
   const {
     register,
     handleSubmit,
@@ -54,6 +59,7 @@ export function MovementForm() {
     setValue,
     formState: { errors, isSubmitting },
     setError,
+    clearErrors,
   } = useForm<MovementFormValues>({
     resolver: zodResolver(movementSchema),
     mode: 'onChange',
@@ -72,18 +78,20 @@ export function MovementForm() {
   const productQuery = useQuery({
     queryKey: ['product', selectedProductId],
     queryFn: () => getProductById(selectedProductId),
-    enabled: Boolean(selectedProductId) && !productsQuery.data?.some((product) => product.id === selectedProductId),
+    enabled:
+      Boolean(selectedProductId) &&
+      !productsQuery.data?.some((product) => product.id === selectedProductId),
   });
 
   useEffect(() => {
-    if (selectedProductId || !productsQuery.data || productsQuery.data.length === 0) {
+    if (selectedProductId || activeProducts.length === 0) {
       return;
     }
-    const defaultProduct = productsQuery.data.find((product) => product.status === 'activo') ?? productsQuery.data[0];
+    const defaultProduct = activeProducts[0];
     if (defaultProduct) {
       setValue('productId', defaultProduct.id);
     }
-  }, [productsQuery.data, selectedProductId, setValue]);
+  }, [activeProducts, selectedProductId, setValue]);
 
   const resolvedProduct: Product | undefined =
     productsQuery.data?.find((product) => product.id === selectedProductId) ?? productQuery.data;
@@ -96,6 +104,7 @@ export function MovementForm() {
 
   useEffect(() => {
     if (selectedType !== 'salida') {
+      clearErrors('quantity');
       return;
     }
     if (typeof quantity !== 'number' || !stockQuery.data) {
@@ -106,13 +115,16 @@ export function MovementForm() {
         type: 'manual',
         message: `La salida no puede superar el stock disponible (${stockQuery.data.currentStock}).`,
       });
+    } else {
+      clearErrors('quantity');
     }
-  }, [quantity, selectedType, setError, stockQuery.data]);
+  }, [quantity, selectedType, setError, clearErrors, stockQuery.data]);
 
   const mutation = useMutation({
     mutationFn: createMovement,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['products-for-select'] });
       navigate('/products');
     },
     onError: (error) => {
@@ -125,7 +137,12 @@ export function MovementForm() {
     [selectedType, stockQuery.data?.currentStock],
   );
 
-  const onSubmit = async (values: MovementFormValues) => {
+  const salidaStockBlocked =
+    selectedType === 'salida' &&
+    Boolean(selectedProductId) &&
+    (stockQuery.isLoading || stockQuery.isError || stockQuery.data === undefined);
+
+  const onSubmit = (values: MovementFormValues) => {
     setGeneralError(null);
     if (values.type === 'salida' && availableStock !== null && values.quantity > availableStock) {
       setError('quantity', {
@@ -135,7 +152,7 @@ export function MovementForm() {
       return;
     }
 
-    await mutation.mutateAsync({
+    mutation.mutate({
       ...values,
       date: new Date().toISOString(),
     });
@@ -170,7 +187,7 @@ export function MovementForm() {
             {...register('productId')}
           >
             <option value="">Selecciona un producto</option>
-            {productsQuery.data?.map((product) => (
+            {activeProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name} ({product.unitMeasure})
               </option>
@@ -227,15 +244,30 @@ export function MovementForm() {
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             {...register('quantity', { valueAsNumber: true })}
           />
-          {availableStock !== null ? (
-            <p className="text-xs text-slate-500">Stock disponible para salida: {availableStock}</p>
+          {selectedType === 'salida' && Boolean(selectedProductId) ? (
+            stockQuery.isLoading ? (
+              <p className="text-xs text-slate-500">Cargando stock disponible...</p>
+            ) : stockQuery.isError ? (
+              <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                <p>No se pudo obtener el stock. Reintenta para poder validar la salida.</p>
+                <button
+                  type="button"
+                  onClick={() => void stockQuery.refetch()}
+                  className="cursor-pointer rounded border border-amber-400 px-2 py-1 font-medium text-amber-900 hover:bg-amber-100"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : availableStock !== null ? (
+              <p className="text-xs text-slate-500">Stock disponible para salida: {availableStock}</p>
+            ) : null
           ) : null}
           {errors.quantity ? <p className="text-sm text-rose-600">{errors.quantity.message}</p> : null}
         </div>
 
         <button
           type="submit"
-          disabled={isSubmitting || mutation.isPending}
+          disabled={isSubmitting || mutation.isPending || salidaStockBlocked}
           className="inline-flex cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting || mutation.isPending ? 'Guardando...' : 'Guardar movimiento'}

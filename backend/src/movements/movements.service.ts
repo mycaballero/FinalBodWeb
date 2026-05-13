@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
@@ -13,6 +12,15 @@ import {
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { GetMovementsQueryDto } from './dto/get-movements-query.dto';
 import { MovementEntity, MovementType } from './entities/movement.entity';
+import { canApplyMovement } from './stock.utils';
+
+const STOCK_BALANCE_SELECT = `COALESCE(SUM(CASE WHEN movement.type = :inType THEN movement.quantity ELSE 0 END), 0) -
+ COALESCE(SUM(CASE WHEN movement.type = :outType THEN movement.quantity ELSE 0 END), 0)`;
+
+const STOCK_BALANCE_PARAMS = {
+  inType: MovementType.IN,
+  outType: MovementType.OUT,
+};
 
 @Injectable()
 export class MovementsService {
@@ -31,9 +39,12 @@ export class MovementsService {
     await runner.startTransaction();
 
     try {
-      const product = await runner.manager.findOne(ProductEntity, {
-        where: { id: dto.productId },
-      });
+      const product = await runner.manager
+        .createQueryBuilder(ProductEntity, 'product')
+        .setLock('pessimistic_write')
+        .where('product.id = :id', { id: dto.productId })
+        .getOne();
+
       if (!product) {
         throw new NotFoundException('Producto no encontrado');
       }
@@ -43,12 +54,9 @@ export class MovementsService {
         );
       }
 
-      const stock = await this.calculateStockByProductInTransaction(
-        dto.productId,
-        runner,
-      );
-      if (dto.type === MovementType.OUT && dto.quantity > stock) {
-        throw new UnprocessableEntityException(
+      const stock = await this.getStockBalance(dto.productId, runner);
+      if (!canApplyMovement(stock, dto.type, dto.quantity)) {
+        throw new BadRequestException(
           'Stock insuficiente para registrar la salida',
         );
       }
@@ -112,47 +120,23 @@ export class MovementsService {
     if (!product) {
       throw new NotFoundException('Producto no encontrado');
     }
-    return this.calculateStockByProductInRepository(productId);
+    return this.getStockBalance(productId);
   }
 
-  private async calculateStockByProductInRepository(
+  private async getStockBalance(
     productId: string,
+    runner?: QueryRunner,
   ): Promise<number> {
-    const input = await this.movementsRepository
-      .createQueryBuilder('movement')
-      .select('COALESCE(SUM(movement.quantity), 0)', 'total')
+    const qb = runner
+      ? runner.manager.createQueryBuilder(MovementEntity, 'movement')
+      : this.movementsRepository.createQueryBuilder('movement');
+
+    const row = await qb
+      .select(STOCK_BALANCE_SELECT, 'balance')
+      .setParameters(STOCK_BALANCE_PARAMS)
       .where('movement.productId = :productId', { productId })
-      .andWhere('movement.type = :type', { type: MovementType.IN })
-      .getRawOne<{ total: string }>();
+      .getRawOne<{ balance: string }>();
 
-    const output = await this.movementsRepository
-      .createQueryBuilder('movement')
-      .select('COALESCE(SUM(movement.quantity), 0)', 'total')
-      .where('movement.productId = :productId', { productId })
-      .andWhere('movement.type = :type', { type: MovementType.OUT })
-      .getRawOne<{ total: string }>();
-
-    return Number(input?.total ?? 0) - Number(output?.total ?? 0);
-  }
-
-  private async calculateStockByProductInTransaction(
-    productId: string,
-    runner: QueryRunner,
-  ): Promise<number> {
-    const input = await runner.manager
-      .createQueryBuilder(MovementEntity, 'movement')
-      .select('COALESCE(SUM(movement.quantity), 0)', 'total')
-      .where('movement.product_id = :productId', { productId })
-      .andWhere('movement.type = :type', { type: MovementType.IN })
-      .getRawOne<{ total: string }>();
-
-    const output = await runner.manager
-      .createQueryBuilder(MovementEntity, 'movement')
-      .select('COALESCE(SUM(movement.quantity), 0)', 'total')
-      .where('movement.product_id = :productId', { productId })
-      .andWhere('movement.type = :type', { type: MovementType.OUT })
-      .getRawOne<{ total: string }>();
-
-    return Number(input?.total ?? 0) - Number(output?.total ?? 0);
+    return Number(row?.balance ?? 0);
   }
 }
