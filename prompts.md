@@ -1,6 +1,6 @@
 # promt inicial
 
-- Agente CLaude
+- Agente Claude
 
 ´´
 ROLE: Eres un experto en prompting especialista en cursor.
@@ -343,3 +343,12 @@ Vamos a implementar todo el frontend así que revisa @docs en busca de las histo
 ´´
 
 El agente implementador creó la estructura de backend correctamente.
+Posteriormente vimos que faltó la implementación de acutalización de un productio y utilizamos el siguiente prompt para dicha iteración:
+
+´´
+No tenemos la implementación para actualizar el nombre descripción y unidad del producto. entonces vamos a implementarlo:
+- Valida el endpoint tipo patch de productos.
+- Añade un pequeño botón de engrae en la card.
+- al presionarlo entonces se precarga la información del producto en el formulario de creación y este por supuesto cambia los textos para que se entienda que está actualizando.
+
+´´

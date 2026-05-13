@@ -8,6 +8,7 @@ import type { Product } from '../types/domain';
 export function ProductList() {
   const queryClient = useQueryClient();
   const [deactivateError, setDeactivateError] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [filterText, setFilterText] = useState('');
   const [sortBy, setSortBy] = useState<'alphabetical' | 'stock'>('alphabetical');
 
@@ -56,12 +57,12 @@ export function ProductList() {
           <button
             type="button"
             onClick={() => void refetch()}
-            className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 hover:bg-rose-100"
+            className="cursor-pointer rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 hover:bg-rose-100"
           >
             {isFetching ? 'Reintentando...' : 'Reintentar'}
           </button>
         </div>
-        <ProductCreateForm />
+        <ProductCreateForm editTarget={editingProduct} onCancelEdit={() => setEditingProduct(null)} />
       </section>
     );
   }
@@ -73,7 +74,7 @@ export function ProductList() {
           <h1 className="text-2xl font-semibold text-slate-900">Panel de productos</h1>
           <p className="mt-2 text-sm text-slate-500">No hay productos registrados todavia.</p>
         </div>
-        <ProductCreateForm />
+        <ProductCreateForm editTarget={editingProduct} onCancelEdit={() => setEditingProduct(null)} />
       </section>
     );
   }
@@ -135,7 +136,7 @@ export function ProductList() {
                 onClick={() =>
                   setSortBy((current) => (current === 'alphabetical' ? 'stock' : 'alphabetical'))
                 }
-                className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                className="cursor-pointer rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
               >
                 <span className="inline-flex items-center gap-2">
                   <span aria-hidden>🔎</span>
@@ -155,6 +156,7 @@ export function ProductList() {
               <ProductCard
                 key={product.id}
                 product={product}
+                onEdit={(p) => setEditingProduct(p)}
                 onDeactivate={handleDeactivate}
                 isDeactivating={deactivateMutation.isPending && deactivateMutation.variables === product.id}
               />
@@ -167,7 +169,7 @@ export function ProductList() {
           ) : null}
         </div>
         <div>
-          <ProductCreateForm />
+          <ProductCreateForm editTarget={editingProduct} onCancelEdit={() => setEditingProduct(null)} />
         </div>
       </div>
     </section>

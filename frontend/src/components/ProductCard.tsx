@@ -7,9 +7,15 @@ interface ProductCardProps {
   product: Product;
   isDeactivating?: boolean;
   onDeactivate?: (product: Product) => void;
+  onEdit?: (product: Product) => void;
 }
 
-export function ProductCard({ product, isDeactivating = false, onDeactivate }: ProductCardProps) {
+export function ProductCard({
+  product,
+  isDeactivating = false,
+  onDeactivate,
+  onEdit,
+}: ProductCardProps) {
   const isLowStock = product.currentStock <= product.minimumStock;
   const isInactive = product.status === 'inactivo';
 
@@ -29,7 +35,24 @@ export function ProductCard({ product, isDeactivating = false, onDeactivate }: P
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <StatusBadge status={product.status} />
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onEdit?.(product)}
+              disabled={isInactive}
+              title="Editar nombre, descripción y unidad"
+              aria-label="Editar producto"
+              className="group inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200/90 bg-slate-100 p-1.5 text-slate-500 shadow-sm transition-colors duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 hover:shadow disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+            >
+              <span
+                className="inline-block origin-center text-base leading-none transition-transform duration-200 ease-out group-hover:scale-110 group-disabled:scale-100"
+                aria-hidden
+              >
+                ⚙
+              </span>
+            </button>
+            <StatusBadge status={product.status} />
+          </div>
           <StockBadge currentStock={product.currentStock} minimumStock={product.minimumStock} />
         </div>
       </div>
@@ -45,7 +68,9 @@ export function ProductCard({ product, isDeactivating = false, onDeactivate }: P
         <Link
           to={`/movements/new?productId=${product.id}`}
           className={`inline-flex rounded-lg px-4 py-2 text-sm font-medium text-white ${
-            isInactive ? 'cursor-not-allowed bg-slate-400 pointer-events-none' : 'bg-indigo-600 hover:bg-indigo-500'
+            isInactive
+              ? 'cursor-not-allowed bg-slate-400 pointer-events-none'
+              : 'cursor-pointer bg-indigo-600 hover:bg-indigo-500'
           }`}
         >
           Registrar movimiento
@@ -54,7 +79,7 @@ export function ProductCard({ product, isDeactivating = false, onDeactivate }: P
           type="button"
           onClick={() => onDeactivate?.(product)}
           disabled={isInactive || isDeactivating}
-          className="inline-flex rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex cursor-pointer rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isDeactivating ? 'Desactivando...' : 'Desactivar'}
         </button>

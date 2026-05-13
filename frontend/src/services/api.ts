@@ -56,6 +56,13 @@ export async function createProduct(payload: CreateProductPayload): Promise<Prod
   return response.data;
 }
 
+export type UpdateProductPayload = Partial<CreateProductPayload>;
+
+export async function updateProduct(id: string, payload: UpdateProductPayload): Promise<Product> {
+  const response = await api.patch<Product>(`/products/${id}`, payload);
+  return response.data;
+}
+
 export async function deactivateProduct(productId: string): Promise<void> {
   await api.delete(`/products/${productId}`);
 }
