@@ -19,6 +19,8 @@ export interface Product {
   minimumStock: number;
   status: ProductStatus;
   currentStock: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateProductPayload {
