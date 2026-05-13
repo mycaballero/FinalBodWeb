@@ -1,5 +1,11 @@
 # React + TypeScript + Vite
 
+## FinalBodWeb — pruebas E2E (Playwright)
+
+- **Ubicación de specs:** `tests/e2e/` (configuración en `playwright.config.ts`).
+- **Variables:** ver `.env.example`. En particular, `VITE_API_URL` debe coincidir con el origen que interceptan los mocks en E2E (por defecto `http://localhost:3000`). Opcional: `PLAYWRIGHT_BASE_URL` (URL del `webServer`, por defecto `http://127.0.0.1:4173`).
+- **Comandos:** `npm run test:e2e`, `npm run test:e2e:ui`, `npm run test:e2e:headed`. En CI se usan reintentos y trazas según `playwright.config.ts`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

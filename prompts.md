@@ -1101,3 +1101,508 @@ Estado inicial (sin cambios): ~19,6 %, 300 sobrevivientes (mucho en migraciones,
 Estado final (última ejecución coherente antes del refactor experimental de fechas): ~99,3 % de puntuación global, 2 mutantes sobrevivientes en la misma condición compuesta de movements.service.ts línea 82 (operadores lógicos / condición compuesta de rango de fechas). Un refactor a guardas anidadas no mejoró el score (más mutantes en las nuevas ramas); se revirtió y se deja la guarda original.
 Reporte HTML: backend/reports/mutation/mutation.html.
 
+- Cursor Agente  (Plan)
+
+```txt
+
+## 🎯 Objetivo
+
+Implementar pruebas End-to-End (E2E) utilizando Playwright sobre el frontend del sistema de inventario y realizar una revisión final completa del proyecto utilizando IA.
+
+El objetivo es validar:
+
+- flujos críticos del sistema
+- integración frontend/backend
+- validaciones visuales y funcionales
+- persistencia de datos
+- manejo de errores
+- experiencia de usuario
+- estabilidad general del sistema
+
+Además, realizar una auditoría técnica final identificando:
+
+- criterios de aceptación incumplidos
+- deuda técnica
+- riesgos
+- mejoras futuras
+- aprendizajes técnicos
+
+---
+# 🧠 Rol
+
+Actúa como un:
+
+- Senior QA Automation Engineer
+- Senior Frontend Engineer
+- Senior Fullstack Reviewer
+- Software Architect
+
+Especializado en:
+
+- Playwright
+- Testing E2E
+- Testing UI
+- Testing de flujos críticos
+- Arquitectura frontend
+- Integración frontend/backend
+- Auditorías técnicas
+- Escalabilidad
+- DX (Developer Experience)
+
+---
+
+# ⚠️ Reglas obligatorias
+
+- NO asumir comportamientos no definidos
+- Todas las pruebas deben ser reproducibles
+- Usar selectores robustos
+- Evitar selectores frágiles basados en estilos
+- Implementar asserts claros
+- Cubrir loading/error states
+- Mantener pruebas desacopladas
+- Explicar riesgos encontrados
+- Detectar deuda técnica
+- Priorizar estabilidad y mantenibilidad
+
+---
+
+# 📦 Parte 1 — Configuración de Playwright
+
+## 🎯 Objetivo
+
+Configurar Playwright correctamente dentro del proyecto frontend.
+
+---
+
+## ✅ Requisitos
+
+Implementar:
+
+- instalación de Playwright
+- configuración inicial
+- estructura de carpetas
+- scripts de ejecución
+- manejo de environment variables
+- configuración baseURL
+- setup de testing environment
+
+---
+
+## 📁 Estructura esperada
+
+/tests
+  /e2e
+  /fixtures
+  /utils
+  /mocks
+
+/playwright.config.ts
+
+---
+
+## ⚙️ Configuración esperada
+
+Configurar:
+
+- retries
+- screenshots on failure
+- trace viewer
+- parallel execution
+- headless mode
+- CI compatibility
+
+---
+
+# 📦 Parte 2 — E2E Pantalla Lista de Productos
+
+## 🎯 Objetivo
+
+Validar completamente la pantalla de listado de productos.
+
+---
+
+# ✅ Flujo mínimo obligatorio
+
+## 🔹 Escenario 1 — Carga de productos
+
+### Flujo
+
+1. Navegar a la pantalla de productos
+2. Esperar carga de datos
+3. Verificar que los productos aparecen correctamente
+
+---
+
+### Validar
+
+- nombre
+- categoría
+- unidad
+- stock actual
+
+---
+
+## 🔹 Escenario 2 — Badge de stock mínimo
+
+### Flujo
+
+1. Identificar producto con stock bajo
+2. Verificar badge de alerta visible
+
+---
+
+### Validar
+
+- texto correcto
+- estado visual correcto
+- accesibilidad mínima
+
+---
+
+## 🔹 Escenario 3 — Navegación a formulario
+
+### Flujo
+
+1. Click en producto
+2. Navegar al formulario de movimiento
+
+---
+
+### Validar
+
+- producto preseleccionado
+- navegación correcta
+
+---
+
+# 📦 Parte 3 — E2E Formulario de Movimiento
+
+## 🎯 Objetivo
+
+Validar el comportamiento completo del formulario de movimientos.
+
+---
+
+# ✅ Flujo mínimo obligatorio
+
+## 🔹 Escenario 4 — Registrar entrada válida
+
+### Flujo
+
+1. Seleccionar producto
+2. Registrar entrada
+3. Enviar formulario
+4. Volver al listado
+
+---
+
+### Validar
+
+- request exitosa
+- feedback visual
+- stock actualizado correctamente
+
+---
+
+## 🔹 Escenario 5 — Registrar salida válida
+
+### Flujo
+
+1. Seleccionar producto con stock
+2. Registrar salida válida
+3. Enviar formulario
+
+---
+
+### Validar
+
+- descuento correcto
+- actualización visual
+- persistencia
+
+---
+
+## 🔹 Escenario 6 — Salida con stock insuficiente
+
+### Flujo
+
+1. Seleccionar producto
+2. Ingresar cantidad mayor al stock
+3. Intentar guardar
+
+---
+
+### Validar
+
+- submit bloqueado
+- mensaje de error claro
+- stock no alterado
+
+---
+
+# ⚠️ Validaciones obligatorias
+
+## Formularios
+
+Validar:
+
+- required fields
+- números inválidos
+- valores negativos
+- loading state
+- disabled state
+- error states
+
+---
+
+# 🧪 Calidad esperada de pruebas E2E
+
+Las pruebas deben:
+
+- ser independientes
+- evitar flaky tests
+- usar waits inteligentes
+- evitar timeouts arbitrarios
+- reutilizar helpers
+- usar Page Object Pattern si aplica
+
+---
+
+# 📋 Formato esperado para cada prueba
+
+## 🧪 Nombre del escenario
+
+### 🎯 Objetivo
+
+Qué valida.
+
+---
+
+### ✅ Código Playwright
+
+``ts
+// test code
+``
+
+### 🧠 Explicación técnica
+- Qué protege
+- Qué bug previene
+- Qué flujo valida
+
+---
+
+# 📦 Parte 4 — Revisión Final 360 del Proyecto con IA
+
+## 🎯 Objetivo
+
+Realizar una auditoría técnica completa del proyecto terminado.
+
+---
+
+## 📥 Inputs esperados
+
+- PRD inicial
+- Código final backend
+- Código final frontend
+- Tests implementados
+- 🔍 Analizar obligatoriamente
+
+---
+
+## 1. Criterios de aceptación
+
+Identificar:
+
+- qué criterios sí se cumplieron
+- qué criterios quedaron incompletos
+- qué funcionalidades están parcialmente implementadas
+
+---
+
+## 2. Deuda técnica backend
+
+Detectar:
+
+- arquitectura débil
+- falta de separación
+- validaciones faltantes
+- problemas de concurrencia
+- falta de caching
+- problemas de performance
+- problemas de testing
+- riesgos de escalabilidad
+
+---
+
+## 3. Deuda técnica frontend
+
+Detectar:
+
+- acoplamiento UI/lógica
+- componentes gigantes
+- problemas de estado
+- UX inconsistente
+- accesibilidad faltante
+- performance issues
+- problemas responsive
+- deuda visual
+
+---
+
+## 4. Calidad de testing
+
+Evaluar:
+
+- cobertura
+- gaps críticos
+- edge cases faltantes
+- calidad de mocks
+- robustez E2E
+
+---
+
+## 5. Seguridad
+
+Evaluar:
+
+- validaciones
+- sanitización
+- protección de inputs
+- manejo de errores sensibles
+
+---
+
+## 6. Escalabilidad
+
+Analizar:
+
+- facilidad de crecimiento
+- mantenibilidad
+- modularidad
+- reutilización
+
+---
+
+## 7. Developer Experience (DX)
+
+Evaluar:
+
+- estructura del proyecto
+- naming
+- scripts
+- onboarding
+- claridad del código
+
+
+# 📋 Formato obligatorio de auditoría
+## ✅ Criterios cumplidos
+
+Lista detallada.
+
+---
+
+## ⚠️ Criterios parcialmente cumplidos
+
+Explicar:
+
+- qué falta
+- impacto
+- prioridad
+
+---
+
+## 🚨 Deuda técnica encontrada
+
+Para cada punto:
+
+### 📍 Severidad
+
+Low / Medium / High / Critical
+
+---
+
+## 🔎 Problema
+
+Explicación técnica.
+
+---
+
+## ✅ Recomendación
+
+Cómo solucionarlo.
+
+---
+
+## 🚀 Mejoras futuras
+
+Proponer:
+
+- mejoras arquitectónicas
+- mejoras UX
+- optimizaciones
+- mejoras testing
+- mejoras CI/CD
+- observabilidad
+- métricas
+- monitoreo
+
+---
+
+## 📚 Aprendizajes del proyecto
+
+Explicar:
+
+- decisiones correctas
+- errores detectados
+- oportunidades de mejora
+- riesgos evitados
+
+---
+
+## 🧱 Calidad esperada
+
+La respuesta debe ser:
+
+- extremadamente técnica
+- específica
+- production-ready
+- crítica
+- estructurada
+- accionable
+
+---
+
+## 📦 Resultado esperado
+
+Una implementación E2E robusta y una auditoría técnica final que permita:
+
+- validar el sistema completo
+- detectar riesgos
+- identificar deuda técnica
+- mejorar calidad
+- fortalecer escalabilidad
+- preparar el proyecto para producción
+
+```
+
+La resúesta para esteprompt fué la siguiente :
+
+Trabajo completado
+Verificación y documentación (pw-verify)
+Añadí frontend/.env.example con VITE_API_URL y comentarios para Playwright (PLAYWRIGHT_BASE_URL, PW_HEADED).
+Amplié frontend/README.md con una sección en español sobre E2E (rutas, variables, comandos).
+Ignoré artefactos de Playwright en frontend/.gitignore (playwright-report/, test-results/).
+Ajuste menor en tests
+En frontend/tests/e2e/product-list.spec.ts, el escenario 3 usa toHaveValue en #productId en lugar del poll manual (misma intención, código más claro).
+Auditoría 360 (audit-360)
+Informe en docs/auditoria-tecnica-360-e2e-finalbodweb.md: criterios cumplidos/parciales frente al PRD (frontend fuera de alcance original), calidad E2E, riesgos de mocks, deuda por severidad (backend/frontend/testing/seguridad/escalabilidad/DX), mejoras y aprendizajes.
+Estado de la suite
+npx playwright test: 14 pruebas pasando.
+npx eslint tests playwright.config.ts: sin problemas.
+Todos los ítems del plan quedaron marcados como completados en la lista de tareas.
+
+
+
+Mi experiencia implementando todo el proceso fue muy interensante. El uso de los Agentes y Skills necesarios para todo el proceso facilitó bastante el proceso de desarrollo y aunque tuve algunos ajustes que hacer, fue una buena experiencia.
+
+Con los que más iteré al principio fue con el agente de prd para tratar de captar correctaente el enfoque del proyecto y así obtener resultados más precisos.

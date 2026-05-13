@@ -93,6 +93,17 @@ export function MovementForm() {
     }
   }, [activeProducts, selectedProductId, setValue]);
 
+  useEffect(() => {
+    const fromUrl = searchParams.get('productId') ?? '';
+    if (!fromUrl) {
+      return;
+    }
+    if (!activeProducts.some((p) => p.id === fromUrl)) {
+      return;
+    }
+    setValue('productId', fromUrl);
+  }, [searchParams, activeProducts, setValue]);
+
   const resolvedProduct: Product | undefined =
     productsQuery.data?.find((product) => product.id === selectedProductId) ?? productQuery.data;
 
@@ -100,6 +111,7 @@ export function MovementForm() {
     queryKey: ['inventory-item', selectedProductId],
     queryFn: () => getInventoryByProductId(selectedProductId),
     enabled: Boolean(selectedProductId) && selectedType === 'salida',
+    retry: false,
   });
 
   useEffect(() => {

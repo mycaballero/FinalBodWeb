@@ -22,6 +22,7 @@ export function ProductCard({
 
   return (
     <article
+      data-testid={`product-card-${product.id}`}
       className={`rounded-2xl border p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
         lowStock
           ? 'border-rose-200 bg-gradient-to-br from-white via-rose-50/50 to-white'
