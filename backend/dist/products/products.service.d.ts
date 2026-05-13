@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import { ProductStockQueryService } from '../common/services/product-stock-query.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
@@ -15,7 +16,8 @@ export interface ProductWithStock {
 }
 export declare class ProductsService {
     private readonly productsRepository;
-    constructor(productsRepository: Repository<ProductEntity>);
+    private readonly productStockQuery;
+    constructor(productsRepository: Repository<ProductEntity>, productStockQuery: ProductStockQueryService);
     create(dto: CreateProductDto): Promise<ProductEntity>;
     findAll(): Promise<ProductWithStock[]>;
     findOne(id: string): Promise<ProductWithStock>;

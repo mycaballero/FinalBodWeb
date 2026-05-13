@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 
 @Controller('inventory')
@@ -16,7 +16,7 @@ export class InventoryController {
   }
 
   @Get(':productId')
-  findOne(@Param('productId') productId: string) {
+  findOne(@Param('productId', ParseUUIDPipe) productId: string) {
     return this.inventoryService.findOne(productId);
   }
 }

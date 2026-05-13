@@ -45,7 +45,7 @@ __decorate([
 ], InventoryController.prototype, "findLowStock", null);
 __decorate([
     (0, common_1.Get)(':productId'),
-    __param(0, (0, common_1.Param)('productId')),
+    __param(0, (0, common_1.Param)('productId', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)

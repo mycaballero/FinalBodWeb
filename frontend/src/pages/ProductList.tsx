@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deactivateProduct, getProducts, normalizeApiError } from '../services/api';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCreateForm } from '../components/ProductCreateForm';
 import type { Product } from '../types/domain';
+import { isLowStock } from '../utils/stock';
 
 export function ProductList() {
   const queryClient = useQueryClient();
@@ -16,11 +17,13 @@ export function ProductList() {
     queryKey: ['products'],
     queryFn: getProducts,
     retry: false,
+    staleTime: 30_000,
   });
 
   const deactivateMutation = useMutation({
     mutationFn: deactivateProduct,
     onSuccess: async () => {
+      setDeactivateError(null);
       await queryClient.invalidateQueries({ queryKey: ['products'] });
     },
     onError: (mutationError) => {
@@ -28,13 +31,44 @@ export function ProductList() {
     },
   });
 
+  const activeProducts = useMemo(
+    () => (data ?? []).filter((product) => product.status === 'activo'),
+    [data],
+  );
+
+  const normalizedFilter = filterText.trim().toLowerCase();
+
+  const filteredProducts = useMemo(
+    () =>
+      activeProducts.filter((product) =>
+        product.name.toLowerCase().includes(normalizedFilter),
+      ),
+    [activeProducts, normalizedFilter],
+  );
+
+  const orderedProducts = useMemo(() => {
+    const copy = [...filteredProducts];
+    if (sortBy === 'stock') {
+      copy.sort((a, b) => a.currentStock - b.currentStock);
+    } else {
+      copy.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    }
+    return copy;
+  }, [filteredProducts, sortBy]);
+
+  const activeCount = activeProducts.length;
+  const lowStockCount = useMemo(
+    () => activeProducts.filter((p) => isLowStock(p.currentStock, p.minimumStock)).length,
+    [activeProducts],
+  );
+
   const handleDeactivate = (product: Product) => {
     setDeactivateError(null);
     const confirmed = window.confirm(`¿Deseas desactivar el producto "${product.name}"?`);
     if (!confirmed) {
       return;
     }
-    void deactivateMutation.mutateAsync(product.id);
+    deactivateMutation.mutate(product.id);
   };
 
   if (isLoading) {
@@ -78,21 +112,6 @@ export function ProductList() {
       </section>
     );
   }
-
-  const activeProducts = data.filter((product) => product.status === 'activo');
-  const normalizedFilter = filterText.trim().toLowerCase();
-  const filteredProducts = activeProducts.filter((product) =>
-    product.name.toLowerCase().includes(normalizedFilter),
-  );
-  const orderedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'stock') {
-      return a.currentStock - b.currentStock;
-    }
-    return a.name.localeCompare(b.name, 'es');
-  });
-
-  const activeCount = activeProducts.length;
-  const lowStockCount = activeProducts.filter((product) => product.currentStock <= product.minimumStock).length;
 
   return (
     <section className="space-y-6">

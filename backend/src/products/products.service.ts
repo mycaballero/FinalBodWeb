@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MovementType } from '../movements/entities/movement.entity';
+import { ProductStockQueryService } from '../common/services/product-stock-query.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity, ProductStatus } from './entities/product.entity';
@@ -27,6 +27,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(ProductEntity)
     private readonly productsRepository: Repository<ProductEntity>,
+    private readonly productStockQuery: ProductStockQueryService,
   ) {}
 
   async create(dto: CreateProductDto): Promise<ProductEntity> {
@@ -45,44 +46,7 @@ export class ProductsService {
   }
 
   async findAll(): Promise<ProductWithStock[]> {
-    const rows = await this.productsRepository
-      .createQueryBuilder('product')
-      .leftJoin('product.movements', 'movement')
-      .select('product.id', 'id')
-      .addSelect('product.name', 'name')
-      .addSelect('product.description', 'description')
-      .addSelect('product.unitMeasure', 'unitMeasure')
-      .addSelect('product.minimumStock', 'minimumStock')
-      .addSelect('product.status', 'status')
-      .addSelect('product.createdAt', 'createdAt')
-      .addSelect('product.updatedAt', 'updatedAt')
-      .addSelect(
-        `COALESCE(SUM(CASE WHEN movement.type = :inType THEN movement.quantity ELSE 0 END), 0) -
-         COALESCE(SUM(CASE WHEN movement.type = :outType THEN movement.quantity ELSE 0 END), 0)`,
-        'currentStock',
-      )
-      .setParameters({ inType: MovementType.IN, outType: MovementType.OUT })
-      .groupBy('product.id')
-      .addGroupBy('product.name')
-      .addGroupBy('product.description')
-      .addGroupBy('product.unitMeasure')
-      .addGroupBy('product.minimumStock')
-      .addGroupBy('product.status')
-      .addGroupBy('product.createdAt')
-      .addGroupBy('product.updatedAt')
-      .orderBy('product.createdAt', 'DESC')
-      .getRawMany<{
-        id: string;
-        name: string;
-        description: string | null;
-        unitMeasure: ProductEntity['unitMeasure'];
-        minimumStock: string;
-        status: ProductEntity['status'];
-        currentStock: string;
-        createdAt: Date;
-        updatedAt: Date;
-      }>();
-
+    const rows = await this.productStockQuery.findAllProductsWithStockRaw();
     return rows.map((row) => ({
       ...row,
       minimumStock: Number(row.minimumStock),
@@ -91,48 +55,10 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<ProductWithStock> {
-    const row = await this.productsRepository
-      .createQueryBuilder('product')
-      .leftJoin('product.movements', 'movement')
-      .select('product.id', 'id')
-      .addSelect('product.name', 'name')
-      .addSelect('product.description', 'description')
-      .addSelect('product.unitMeasure', 'unitMeasure')
-      .addSelect('product.minimumStock', 'minimumStock')
-      .addSelect('product.status', 'status')
-      .addSelect('product.createdAt', 'createdAt')
-      .addSelect('product.updatedAt', 'updatedAt')
-      .addSelect(
-        `COALESCE(SUM(CASE WHEN movement.type = :inType THEN movement.quantity ELSE 0 END), 0) -
-         COALESCE(SUM(CASE WHEN movement.type = :outType THEN movement.quantity ELSE 0 END), 0)`,
-        'currentStock',
-      )
-      .setParameters({ inType: MovementType.IN, outType: MovementType.OUT })
-      .where('product.id = :id', { id })
-      .groupBy('product.id')
-      .addGroupBy('product.name')
-      .addGroupBy('product.description')
-      .addGroupBy('product.unitMeasure')
-      .addGroupBy('product.minimumStock')
-      .addGroupBy('product.status')
-      .addGroupBy('product.createdAt')
-      .addGroupBy('product.updatedAt')
-      .getRawOne<{
-        id: string;
-        name: string;
-        description: string | null;
-        unitMeasure: ProductEntity['unitMeasure'];
-        minimumStock: string;
-        status: ProductEntity['status'];
-        currentStock: string;
-        createdAt: Date;
-        updatedAt: Date;
-      }>();
-
+    const row = await this.productStockQuery.findOneProductWithStockRaw(id);
     if (!row) {
       throw new NotFoundException('Producto no encontrado');
     }
-
     return {
       ...row,
       minimumStock: Number(row.minimumStock),

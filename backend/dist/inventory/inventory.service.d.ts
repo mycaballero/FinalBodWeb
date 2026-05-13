@@ -1,8 +1,7 @@
-import { Repository } from 'typeorm';
-import { ProductEntity } from '../products/entities/product.entity';
+import { ProductStockQueryService } from '../common/services/product-stock-query.service';
 export declare class InventoryService {
-    private readonly productsRepository;
-    constructor(productsRepository: Repository<ProductEntity>);
+    private readonly productStockQuery;
+    constructor(productStockQuery: ProductStockQueryService);
     findAll(): Promise<{
         productId: string;
         name: string;

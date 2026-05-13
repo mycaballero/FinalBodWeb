@@ -16,12 +16,14 @@ exports.ProductsService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const movement_entity_1 = require("../movements/entities/movement.entity");
+const product_stock_query_service_1 = require("../common/services/product-stock-query.service");
 const product_entity_1 = require("./entities/product.entity");
 let ProductsService = class ProductsService {
     productsRepository;
-    constructor(productsRepository) {
+    productStockQuery;
+    constructor(productsRepository, productStockQuery) {
         this.productsRepository = productsRepository;
+        this.productStockQuery = productStockQuery;
     }
     async create(dto) {
         const existing = await this.productsRepository.findOne({
@@ -37,30 +39,7 @@ let ProductsService = class ProductsService {
         return this.productsRepository.save(created);
     }
     async findAll() {
-        const rows = await this.productsRepository
-            .createQueryBuilder('product')
-            .leftJoin('product.movements', 'movement')
-            .select('product.id', 'id')
-            .addSelect('product.name', 'name')
-            .addSelect('product.description', 'description')
-            .addSelect('product.unitMeasure', 'unitMeasure')
-            .addSelect('product.minimumStock', 'minimumStock')
-            .addSelect('product.status', 'status')
-            .addSelect('product.createdAt', 'createdAt')
-            .addSelect('product.updatedAt', 'updatedAt')
-            .addSelect(`COALESCE(SUM(CASE WHEN movement.type = :inType THEN movement.quantity ELSE 0 END), 0) -
-         COALESCE(SUM(CASE WHEN movement.type = :outType THEN movement.quantity ELSE 0 END), 0)`, 'currentStock')
-            .setParameters({ inType: movement_entity_1.MovementType.IN, outType: movement_entity_1.MovementType.OUT })
-            .groupBy('product.id')
-            .addGroupBy('product.name')
-            .addGroupBy('product.description')
-            .addGroupBy('product.unitMeasure')
-            .addGroupBy('product.minimumStock')
-            .addGroupBy('product.status')
-            .addGroupBy('product.createdAt')
-            .addGroupBy('product.updatedAt')
-            .orderBy('product.createdAt', 'DESC')
-            .getRawMany();
+        const rows = await this.productStockQuery.findAllProductsWithStockRaw();
         return rows.map((row) => ({
             ...row,
             minimumStock: Number(row.minimumStock),
@@ -68,30 +47,7 @@ let ProductsService = class ProductsService {
         }));
     }
     async findOne(id) {
-        const row = await this.productsRepository
-            .createQueryBuilder('product')
-            .leftJoin('product.movements', 'movement')
-            .select('product.id', 'id')
-            .addSelect('product.name', 'name')
-            .addSelect('product.description', 'description')
-            .addSelect('product.unitMeasure', 'unitMeasure')
-            .addSelect('product.minimumStock', 'minimumStock')
-            .addSelect('product.status', 'status')
-            .addSelect('product.createdAt', 'createdAt')
-            .addSelect('product.updatedAt', 'updatedAt')
-            .addSelect(`COALESCE(SUM(CASE WHEN movement.type = :inType THEN movement.quantity ELSE 0 END), 0) -
-         COALESCE(SUM(CASE WHEN movement.type = :outType THEN movement.quantity ELSE 0 END), 0)`, 'currentStock')
-            .setParameters({ inType: movement_entity_1.MovementType.IN, outType: movement_entity_1.MovementType.OUT })
-            .where('product.id = :id', { id })
-            .groupBy('product.id')
-            .addGroupBy('product.name')
-            .addGroupBy('product.description')
-            .addGroupBy('product.unitMeasure')
-            .addGroupBy('product.minimumStock')
-            .addGroupBy('product.status')
-            .addGroupBy('product.createdAt')
-            .addGroupBy('product.updatedAt')
-            .getRawOne();
+        const row = await this.productStockQuery.findOneProductWithStockRaw(id);
         if (!row) {
             throw new common_1.NotFoundException('Producto no encontrado');
         }
@@ -142,6 +98,7 @@ exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(product_entity_1.ProductEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        product_stock_query_service_1.ProductStockQueryService])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

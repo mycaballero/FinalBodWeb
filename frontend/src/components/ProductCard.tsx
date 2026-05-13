@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../types/domain';
+import { isLowStock } from '../utils/stock';
 import { StockBadge } from './StockBadge';
 import { StatusBadge } from './StatusBadge';
 
@@ -16,13 +17,13 @@ export function ProductCard({
   onDeactivate,
   onEdit,
 }: ProductCardProps) {
-  const isLowStock = product.currentStock <= product.minimumStock;
+  const lowStock = isLowStock(product.currentStock, product.minimumStock);
   const isInactive = product.status === 'inactivo';
 
   return (
     <article
       className={`rounded-2xl border p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
-        isLowStock
+        lowStock
           ? 'border-rose-200 bg-gradient-to-br from-white via-rose-50/50 to-white'
           : 'border-indigo-200 bg-gradient-to-br from-white via-indigo-50/50 to-white'
       }`}
@@ -59,7 +60,7 @@ export function ProductCard({
 
       <div className="mt-4 rounded-xl border border-slate-200/80 bg-white/90 p-3">
         <p className="text-xs uppercase tracking-wide text-slate-500">Stock actual</p>
-        <p className={`text-2xl font-semibold ${isLowStock ? 'text-rose-600' : 'text-indigo-700'}`}>
+        <p className={`text-2xl font-semibold ${lowStock ? 'text-rose-600' : 'text-indigo-700'}`}>
           {product.currentStock}
         </p>
       </div>
