@@ -1,9 +1,16 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-schema.json",
   "testRunner": "jest",
-  "reporters": ["clear-text", "progress"],
+  "reporters": ["clear-text", "progress", "html"],
   "coverageAnalysis": "off",
-  "mutate": ["src/**/*.ts", "!src/**/*.spec.ts", "!src/**/*.pbt.spec.ts"],
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!src/**/*.pbt.spec.ts",
+    "!src/main.ts",
+    "!src/database/**/*.ts",
+    "!src/common/health.controller.ts"
+  ],
   "thresholds": {
     "high": 80,
     "low": 60,

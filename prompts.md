@@ -643,3 +643,461 @@ La regla “salida nunca supera stock” debe ser atómica respecto a otras sali
 
 ```
 
+- Cursor Agent (Auto)
+
+```txt
+
+## 🎯 Objetivo
+
+Implementar una suite de testing robusta utilizando:
+
+- Jest
+- Property-Based Testing (PBT)
+- Buenas prácticas de testing
+- Cobertura de lógica crítica de inventario
+
+El objetivo es validar completamente la lógica de:
+
+- creación de productos
+- movimientos de inventario
+- validaciones de stock
+- cálculo de stock acumulado
+- reglas de negocio
+- invariantes del dominio
+
+---
+
+# 🧠 Rol
+
+Actúa como un Senior QA Engineer + Senior Backend Developer especializado en:
+
+- Jest
+- Property-Based Testing
+- Fast-check
+- Testing de lógica de negocio
+- Arquitectura hexagonal
+- Testing determinístico
+- Cobertura de edge cases
+- Prevención de regresiones
+
+---
+
+# ⚠️ Reglas obligatorias
+
+- NO asumir comportamientos no definidos
+- Todas las pruebas deben ser determinísticas
+- Usar nombres descriptivos
+- Separar claramente Arrange / Act / Assert
+- Evitar mocks innecesarios
+- Priorizar pruebas de dominio
+- Cubrir edge cases
+- Cubrir reglas críticas de negocio
+- Explicar contraejemplos encontrados en PBT
+
+---
+
+# 📦 Testing requerido
+
+## ✅ Generar al menos 10 pruebas unitarias con Jest
+
+Cubrir como mínimo:
+
+### Productos
+
+1. Crear producto válido
+2. Error al crear producto con datos inválidos
+3. Desactivar producto sin movimientos
+4. Desactivar producto con movimientos asociados
+5. Impedir eliminación física de producto con movimientos
+
+---
+
+### Movimientos
+
+6. Registrar entrada de stock
+7. Registrar salida con stock suficiente
+8. Rechazar salida que supera el stock
+9. Rechazar cantidades negativas
+10. Registrar múltiples movimientos consecutivos
+
+---
+
+### Stock
+
+11. Calcular stock acumulado correctamente
+12. Calcular stock después de múltiples entradas y salidas
+13. Validar stock mínimo
+14. Validar stock igual a cero
+15. Validar productos sin movimientos
+
+---
+
+# 🧪 Property-Based Testing (PBT)
+
+## ⚠️ Requisito obligatorio
+
+Implementar al menos 3 pruebas PBT utilizando:
+
+- fast-check
+- generators/arbitraries adecuados
+- propiedades invariantes del dominio
+
+---
+
+# 📋 Propiedades mínimas a validar
+
+## 🔹 PBT #1 — El stock nunca debe ser negativo
+
+### Propiedad
+
+Para cualquier secuencia válida de movimientos:
+
+stock >= 0
+
+### Validar
+
+- entradas aleatorias
+- salidas aleatorias
+- secuencias largas
+- edge cases
+
+---
+
+## 🔹 PBT #2 — El stock calculado debe coincidir con la suma matemática
+
+### Propiedad
+
+stockFinal = SUM(entradas) - SUM(salidas)
+
+### Validar
+
+- secuencias aleatorias
+- movimientos mixtos
+- valores grandes
+
+---
+
+## 🔹 PBT #3 — Una salida inválida nunca debe alterar el stock
+
+### Propiedad
+
+Si:
+
+salida > stock
+
+Entonces:
+
+stockFinal === stockInicial
+
+---
+
+# 🔍 Análisis de contraejemplos
+
+## Obligatorio
+
+Después de ejecutar las pruebas PBT:
+
+1. Analizar los counterexamples encontrados
+2. Explicar:
+   - qué causó el fallo
+   - qué regla fue violada
+   - qué edge case apareció
+3. Ajustar la lógica de negocio si es necesario
+4. Mostrar el refactor aplicado
+5. Re-ejecutar mentalmente la validación
+
+---
+
+# 🧱 Requisitos técnicos
+
+## Testing stack
+
+Usar:
+
+- Jest
+- fast-check
+
+---
+
+## Estructura esperada
+
+/tests
+  /unit
+  /pbt
+
+---
+
+## Naming
+
+Usar nombres descriptivos:
+
+shouldRejectOutputMovementWhenStockIsInsufficient
+
+---
+
+# 📋 Formato esperado de respuesta
+
+Para cada prueba:
+
+---
+
+## 🧪 Nombre de la prueba
+
+### 🎯 Objetivo
+
+Qué valida.
+
+---
+
+### ✅ Código de prueba
+
+// test
+
+---
+
+### 🧠 Explicación
+
+- Qué protege
+- Qué bug previene
+- Qué regla valida
+
+---
+
+# 🚀 Resultado esperado
+
+El resultado final debe:
+
+- aumentar cobertura
+- prevenir regresiones
+- validar reglas críticas
+- detectar edge cases automáticamente
+- asegurar estabilidad del dominio
+- fortalecer la lógica de inventario
+- demostrar robustez mediante PBT
+
+---
+
+# ⚠️ Calidad esperada
+
+Las pruebas deben ser:
+
+- mantenibles
+- legibles
+- aisladas
+- determinísticas
+- escalables
+- orientadas al dominio
+- production-ready
+
+```
+
+El agente completó 37 tests, 6 suites, 3 tests PBT.
+
+para la mejora de los mutantes utilicé el siguiente prompt.
+
+```txt
+
+ROL:
+Actúa como un experto Senior en Testing de Software, Mutation Testing, TDD y calidad de código.
+
+Tienes experiencia profunda en:
+- Stryker
+- PIT Mutation Testing
+- Infection PHP
+- Jest
+- PHPUnit
+- JUnit
+- Vitest
+- Testing de backend y frontend
+- Diseño de pruebas robustas
+- Cobertura lógica vs cobertura superficial
+- Anti-patterns en testing
+
+OBJETIVO:
+Analizar un reporte de Mutation Testing e identificar detalladamente TODOS los mutantes sobrevivientes (survived mutants).
+
+Tu tarea es explicar:
+1. Qué significa cada mutación.
+2. Qué comportamiento incorrecto introdujo el mutante.
+3. Por qué las pruebas actuales NO detectaron el problema.
+4. Qué debilidad existe en la suite de tests.
+5. Qué prueba específica debe escribirse para matar el mutante.
+6. Qué assertion exacta falta.
+7. Qué caso borde no fue cubierto.
+8. Qué mejora arquitectónica podría ayudar si aplica.
+
+CONTEXTO:
+Voy a proporcionarte un reporte completo de mutation testing generado por herramientas como:
+- Stryker
+- PIT
+- Infection
+- u otras similares.
+
+El reporte puede contener:
+- survived mutants
+- killed mutants
+- timeout
+- no coverage
+- equivalent mutants
+- mutation score
+
+Debes enfocarte PRINCIPALMENTE en los mutantes sobrevivientes.
+
+INSTRUCCIONES DE ANÁLISIS:
+
+Para CADA mutante sobreviviente debes:
+
+# 1. IDENTIFICAR EL MUTANTE
+Explicar:
+- archivo afectado,
+- línea,
+- tipo de mutación,
+- código original,
+- código mutado.
+
+Ejemplo:
+Original:
+if (stock > 0)
+
+Mutado:
+if (stock >= 0)
+
+# 2. EXPLICAR EL IMPACTO
+Describir:
+- qué comportamiento cambia,
+- qué bug potencial permitiría,
+- por qué es peligroso,
+- qué lógica de negocio se rompe.
+
+# 3. ANALIZAR POR QUÉ SOBREVIVIÓ
+Explicar:
+- qué test faltó,
+- qué assertion fue insuficiente,
+- qué branch nunca se ejecutó,
+- si hubo mocks excesivos,
+- si existe testing superficial,
+- si el test solo verifica “happy path”.
+
+# 4. PROPONER LA PRUEBA FALTANTE
+Generar:
+- nombre sugerido del test,
+- escenario exacto,
+- datos de entrada,
+- assertion necesaria,
+- resultado esperado.
+
+# 5. GENERAR EL TEST
+Escribir el test completo en el framework correspondiente.
+
+IMPORTANTE:
+- El test debe ser REALISTA y ejecutable.
+- Debe enfocarse específicamente en matar el mutante.
+- Debe seguir buenas prácticas.
+- Debe tener Arrange / Act / Assert claros.
+
+# 6. EVALUAR SI ES UN EQUIVALENT MUTANT
+Analizar si el mutante podría ser equivalente:
+- es decir, si el comportamiento observable nunca cambia realmente.
+
+Si parece equivalente:
+- explicarlo técnicamente,
+- justificar por qué no puede matarse fácilmente.
+
+# 7. CLASIFICAR LA GRAVEDAD
+Clasificar cada mutante como:
+- Baja
+- Media
+- Alta
+- Crítica
+
+Según el riesgo real que representa en producción.
+
+FORMATO DE RESPUESTA:
+
+Para cada mutante usar esta estructura EXACTA:
+
+--------------------------------------------------
+MUTANTE #X
+--------------------------------------------------
+
+📍 Archivo:
+📍 Línea:
+📍 Tipo de mutación:
+
+🔹 Código original:
+[código]
+
+🔹 Código mutado:
+[código]
+
+🧠 ¿Qué cambió?
+[explicación]
+
+⚠️ Riesgo potencial:
+[impacto]
+
+❌ ¿Por qué las pruebas no lo detectaron?
+[análisis profundo]
+
+✅ Test que falta:
+[explicación]
+
+🧪 Ejemplo de prueba:
+[código completo]
+
+📊 Gravedad:
+[Alta/Media/Baja/Crítica]
+
+🟡 ¿Podría ser equivalent mutant?
+[Sí/No + explicación]
+
+--------------------------------------------------
+
+ANÁLISIS GLOBAL FINAL:
+Al terminar todos los mutantes sobrevivientes:
+
+1. Detectar patrones comunes de debilidad:
+- falta de edge cases,
+- asserts débiles,
+- exceso de mocks,
+- ausencia de pruebas negativas,
+- baja cobertura de branches,
+- etc.
+
+2. Evaluar calidad general de la suite de tests.
+
+3. Explicar:
+- qué tan confiable es el sistema actualmente,
+- qué áreas tienen más riesgo,
+- qué estrategia de testing debería mejorarse.
+
+4. Proponer mejoras concretas:
+- property-based testing,
+- testing parametrizado,
+- integración,
+- contract testing,
+- tests de dominio,
+- reducción de mocks,
+- etc.
+
+TONO:
+- Técnico
+- Pedagógico
+- Profundo
+- Preciso
+- Crítico
+- Orientado a ingeniería real
+
+OBJETIVO FINAL:
+No solo listar mutantes, sino enseñar exactamente:
+- qué debilidad existe en las pruebas,
+- por qué el mutation testing la reveló,
+- y cómo convertir la suite de tests en una suite realmente robusta.
+
+```
+
+Resultado de mutation testing
+Estado inicial (sin cambios): ~19,6 %, 300 sobrevivientes (mucho en migraciones, seeds, main, SQL sin tests).
+Estado final (última ejecución coherente antes del refactor experimental de fechas): ~99,3 % de puntuación global, 2 mutantes sobrevivientes en la misma condición compuesta de movements.service.ts línea 82 (operadores lógicos / condición compuesta de rango de fechas). Un refactor a guardas anidadas no mejoró el score (más mutantes en las nuevas ramas); se revirtió y se deja la guarda original.
+Reporte HTML: backend/reports/mutation/mutation.html.
+
